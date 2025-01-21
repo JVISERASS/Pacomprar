@@ -10,17 +10,19 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         # Contenido HTML que queremos devolver
         html_content = """<!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Servidor Python</title>
-        </head>
-        <body>
-            <h1>Hola desde un servidor Python</h1>
-            <p>Este es un servidor simple que responde a solicitudes GET.</p>
-        </body>
-        </html>"""
+            <html lang='en'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Servidor Python</title>
+            </head>
+            <body>
+                <h1>Hola desde un servidor Python</h1>
+                <p>Este es un servidor simple que responde a solicitudes GET.</p>
+                <img src="https://i.pinimg.com/originals/c3/73/09/c373096a0d4fc9f8e4fecbc0b60f784d.jpg">
+            </body>
+            </html>
+            """
 
         # Escribir el contenido HTML en la respuesta
         self.wfile.write(html_content.encode("utf-8"))
