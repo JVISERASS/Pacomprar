@@ -36,6 +36,12 @@ class TestSimpleHTTPServer(unittest.TestCase):
         self.assertIn("<h1>Hola desde un servidor Python</h1>", response.text)
         self.assertIn("<p>Este es un servidor simple que responde a solicitudes GET.</p>", response.text)
 
+         # Verifica que la etiqueta <img> esté presente con la URL correcta
+        self.assertIn(
+            '<img src="https://i.pinimg.com/originals/c3/73/09/c373096a0d4fc9f8e4fecbc0b60f784d.jpg">',
+            response.text
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
