@@ -1,0 +1,10 @@
+/* index.css */
+
+/* Estilos específicos para la página de índice */
+.index__hero {
+    display: block;
+    margin: 50px auto 0;
+    max-width: 80%;
+    height: auto;
+}
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Índice</title>
+  <!-- Rutas actualizadas para los CSS -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body class="layout-container">
+  <header class="header">
+    <a href="index.html" class="header__logo">
+      <img src="../images/paco_logo.png" alt="logo pequeño">
+    </a>
+    <form id="formBusqueda" class="header__search">
+      <input type="text" id="campoBusqueda" name="q" placeholder="Buscar..." class="header__search-input">
+      <button type="submit" class="header__search-button">Buscar</button>
+    </form>
+    <div class="header__buttons">
+      <button onclick="window.location.href='login.html';" class="header__button">Inicio de Sesión</button>
+      <button onclick="window.location.href='register.html';" class="header__button">Registrarse</button>
+    </div>
+  </header>
+
+  <main class="index__main">
+    <img src="../images/pacomprar_logo.png" alt="logo grande" class="index__hero">
+  </main>
+
+  <footer class="footer">
+    <p>&copy; Pacomprar. O Pavender. Lo que quiera usted hacer.</p>
+    <nav class="footer__nav">
+      <a href="index.html" class="footer__link">Inicio</a>
+      <a href="login.html" class="footer__link">Inicio de Sesión</a>
+      <a href="register.html" class="footer__link">Registrarse</a>
+    </nav>
+  </footer>  
+</body>
+</html>
