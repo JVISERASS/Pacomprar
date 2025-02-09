@@ -9,15 +9,17 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/index.css">
 </head>
+<script src= "js/SearchProduct.js" defer></script>
+
 <body class="layout-container">
   <header class="header">
     <a href="index.html" class="header__logo">
       <img src="../images/paco_logo.png" alt="logo pequeño">
     </a>
-    <form id="formBusqueda" class="header__search">
+    <form id="formBusqueda" class="header__search" action="searchResultWindow.html" method="GET">
       <input type="text" id="campoBusqueda" name="q" placeholder="Buscar..." class="header__search-input">
       <button type="submit" class="header__search-button">Buscar</button>
-    </form>
+  </form>  
     <div class="header__buttons">
       <button onclick="window.location.href='login.html';" class="header__button">Inicio de Sesión</button>
       <button onclick="window.location.href='register.html';" class="header__button">Registrarse</button>

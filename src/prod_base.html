@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Result</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/prod_base.css">
+</head>
+<script src= "js/SearchProduct.js" defer></script>
+<body>
+    <div class="layout-container">
+        <!-- HEADER -->
+        <header class="header">
+            <a href="index.html" class="header__logo">
+              <img src="../images/paco_logo.png" alt="logo pequeño">
+            </a>
+            <form id="formBusqueda" class="header__search" action="searchResultWindow.html" method="GET">
+                <input type="text" id="campoBusqueda" name="q" placeholder="Buscar..." class="header__search-input">
+                <button type="submit" class="header__search-button">Buscar</button>
+            </form>            
+            <div class="header__buttons">
+              <button onclick="window.location.href='login.html';" class="header__button">Inicio de Sesión</button>
+              <button onclick="window.location.href='register.html';" class="header__button">Registrarse</button>
+            </div>
+          </header>
+        
+        <main>
+            <div class="fixed-section">
+                <h1>Product Name</h1>
+                <p class="Price">Current Price: $100</p>
+                <p class="LongDescription">This is a long description of the product. It provides detailed information about the product, its features, and any other relevant details.</p>
+                
+                <form class="bid-form">
+                    <label for="bid-amount">Enter your bid:</label>
+                    <input type="number" id="bid-amount" name="bid-amount" min="1" step="0.01" required>
+                    <button type="submit" class="bid-button">Place a Bid</button>
+                </form>
+            </div>
+            <div class="scrollable-section">
+                <div class="row">
+                    <div class="column">
+                        <img src="../images/prod_img/PROD1.jpg" alt="Image 1">
+                    </div>
+                    <div class="column">
+                        <img src="../images/prod_img/PROD2.jpg" alt="Image 2">
+                    </div>
+                    <div class="column">
+                        <img src="../images/prod_img/PROD3.jpg" alt="Image 3">
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+</body>
+</html>
