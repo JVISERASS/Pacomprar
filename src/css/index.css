@@ -4,7 +4,8 @@
 .index__hero {
     display: block;
     margin: 50px auto 0;
-    max-width: 80%;
-    height: auto;
+    width: 100%;       /* Permite que la imagen ocupe el 100% del ancho de su contenedor */
+    max-width: 60%;    /* Limita el ancho máximo al 60% para que sea más pequeña */
+    height: auto;      /* Mantiene la proporción original de la imagen */
 }
 
