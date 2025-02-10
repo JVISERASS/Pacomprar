@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio de Sesión</title>
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body class="layout-container">
+  <header class="header">
+    <a href="index.html" class="header__logo">
+      <img src="../images/paco_logo.png" alt="logo pequeño">
+    </a>
+    <form id="formBusqueda" class="header__search" action="searchResultWindow.html" method="GET">
+      <input type="text" id="campoBusqueda" name="q" placeholder="Buscar..." class="header__search-input">
+      <button type="submit" class="header__search-button">Buscar</button>
+  </form>
+  
+    <div class="header__buttons">
+      <button onclick="window.location.href='login.html';" class="header__button">Inicio de Sesión</button>
+      <button onclick="window.location.href='register.html';" class="header__button">Registrarse</button>
+    </div>
+  </header>
+
+  <main class="login__main">
+    <div class="login-container">
+      <h1 class="login-container__title">Iniciar Sesión</h1>
+      <form class="login-form" action="/login" method="POST">
+        <input type="email" placeholder="Correo electrónico" class="login-form__input" required>
+        <input type="password" placeholder="Contraseña" class="login-form__input" required>
+        <input type="submit" value="Ingresar" class="login-form__submit">
+      </form>
+      
+      <div class="login-links">
+        <a href="/recuperar-contrasena" class="login-links__link">¿Olvidaste tu contraseña?</a>
+        <a href="register.html" class="login-links__link">Crear cuenta nueva</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; Pacomprar. O Pavender. Lo que quiera usted hacer.</p>
+    <nav class="footer__nav">
+      <a href="index.html" class="footer__link">Inicio</a>
+      <a href="login.html" class="footer__link">Inicio de Sesión</a>
+      <a href="register.html" class="footer__link">Registrarse</a>
+    </nav>
+  </footer>
+</body>
+</html>

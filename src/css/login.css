@@ -1,0 +1,84 @@
+/* login.css */
+
+/* Configuración del body para que use flex y organice sus elementos en columna */
+body.layout-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ocupa toda la altura de la ventana */
+    margin: 0;
+}
+
+/* El header y el footer se mantienen con su tamaño natural */
+header,
+footer {
+    flex: 0 0 auto;
+}
+
+/* La sección principal ocupa el espacio restante y centra su contenido */
+.login__main {
+    flex: 1;  /* Ocupa el espacio disponible entre header y footer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Estilos para el cuadro de login */
+.login__container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* Estilos del formulario */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.login-form__input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+}
+
+.login-form__submit {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.login-form__submit:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para los enlaces de ayuda */
+.login-links {
+    text-align: center;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.login-links__link {
+    color: #007BFF;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.login-links__link:hover {
+    text-decoration: underline;
+}
