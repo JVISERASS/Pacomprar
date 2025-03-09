@@ -25,9 +25,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(user);
       return user;
     } catch (error) {
-      console.error('AuthContext - Error en login:', error);
-      setError(error.message || 'Error al iniciar sesión');
-      // Propagar el error completo para que se pueda manejar en los componentes
+      setError(error.message);
       throw error;
     }
   };
