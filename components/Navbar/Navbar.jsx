@@ -93,8 +93,8 @@ const Navbar = () => {
                   <Link href="/usuario" className={styles.dropdownItem}>
                     Editar Perfil
                   </Link>
-                  <Link href="/mis-subastas" className={styles.dropdownItem}>
-                    Mis Subastas
+                  <Link href="/subastas/crear" className={styles.dropdownItem}>
+                    Crear Subasta
                   </Link>
                   <button
                     onClick={handleLogout}

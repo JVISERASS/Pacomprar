@@ -13,6 +13,7 @@ const AuctionDetailPage = () => {
   const [error, setError] = useState(null);
   const [bidAmount, setBidAmount] = useState('');
   
+  
   // Función para formatear el precio correctamente
   const formatPrice = (price) => {
     if (price === undefined || price === null || isNaN(price)) {
@@ -104,34 +105,26 @@ const AuctionDetailPage = () => {
         // Esperar un poco para simular carga
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Si no tenemos un ID específico, usamos el primero
         if (!params.id) {
-          setAuction(mockAuctions[0]);
+          setError('No se proporcionó un ID válido para la subasta.');
           return;
         }
-        
+
+        if (params.id === 'crear') {
+          router.push('/subastas/crear');
+          return;
+        }
+
         const foundAuction = mockAuctions.find(item => item.id === params.id);
-        
+
         if (foundAuction) {
           setAuction(foundAuction);
         } else {
-          // Si no se encuentra la subasta, usamos la primera como fallback
-          setAuction(mockAuctions[0]);
+          setError('No se encontró la subasta especificada.');
         }
       } catch (err) {
         console.error(err);
-        // En caso de error, utilizamos un objeto de subasta por defecto
-        setAuction({
-          id: '1',
-          title: 'iPhone 13 Pro Max - 256GB',
-          description: 'iPhone 13 Pro Max en excelente estado. Incluye cargador y auriculares originales.',
-          currentBid: 650.00,
-          buyNowPrice: 900.00,
-          bids: 12,
-          seller: 'tecnoventas',
-          category: 'electronica',
-          endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        });
+        setError('Ocurrió un error al cargar la subasta.');
       } finally {
         setLoading(false);
       }
@@ -167,7 +160,19 @@ const AuctionDetailPage = () => {
     );
   }
   
-  // Siempre tendremos una subasta para mostrar, ya que usamos valores por defecto
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <p>{error}</p>
+      </div>
+    );
+  }
+  
+  // Ensure auction is not null or undefined before destructuring
+  if (!auction) {
+    return null;
+  }
+
   const { title, description, currentBid, buyNowPrice, bids, seller, category, endDate } = auction;
   
   // Determinar la imagen a mostrar usando la categoría para seleccionar una imagen por defecto
