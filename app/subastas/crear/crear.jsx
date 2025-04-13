@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from './styles.module.css'; 
-
+import { useAuthFetch } from '../../../hooks/useAuthFetch';
 
 export default function CreateAuctionPage() {
     const [formData, setFormData] = useState({
@@ -26,6 +26,7 @@ export default function CreateAuctionPage() {
 
     const router = useRouter();
     const { currentUser } = useAuth();
+    const {authFetch} = useAuthFetch();
 
     const [authChecked, setAuthChecked] = useState(false);
 
@@ -47,12 +48,26 @@ export default function CreateAuctionPage() {
         try {
           const response = await fetch('https://pacomprarserver.onrender.com/api/subastas/categorias/');
           const data = await response.json();
-          setCategories(data);
+          
+          // Check the structure of received data
+          console.log("Datos de categorías recibidos:", data);
+          
+          // Extract the results array and map to expected format
+          const processedCategories = data.results ? data.results.map(cat => ({
+            id: cat.id,
+            name: cat.nombre // Map "nombre" to "name"
+          })) : [];
+          
+          setCategories(processedCategories);
         } catch (error) {
-          console.error('Error fetching categories:', error);
+          console.error('Error al obtener categorías:', error);
+          // In case of error, provide some default categories
+          setCategories([
+            {id: 1, name: "Categoría por defecto"}
+          ]);
         }
       };
-
+    
       fetchCategories();
     }, []);
 
@@ -84,66 +99,58 @@ export default function CreateAuctionPage() {
         return null;
       };
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-    
-      const validationError = validateForm();
-      if (validationError) {
-        setError(validationError);
-        return;
-      }
-    
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+      
+        const validationError = validateForm();
+        if (validationError) {
+          setError(validationError);
+          return;
+        }
+      
+      // Format the data according to the required API field names
       const auctionData = {
-        ...formData,
-        price: parseFloat(formData.price),
+        titulo: formData.title,
+        descripcion: formData.description,
+        precio_inicial: parseFloat(formData.price),
+        valoracion: formData.rating ? parseFloat(formData.rating) : 0,
+        marca: formData.brand,
+        imagen: formData.thumbnail,
+        fecha_cierre: formData.closing_date,
+        categoria: formData.category,
         stock: parseInt(formData.stock),
-        rating: formData.rating ? parseFloat(formData.rating) : null,
-        category: formData.category,
-        creation_date: new Date().toISOString(),
       };
     
       try {
         setLoading(true);
         setError('');
-    
-        if (!currentUser || !currentUser.access) {
-          setError('La sesión ha expirado, por favor inicia sesión nuevamente');
-          setTimeout(() => {
-            router.push('/login');
-          }, 2000);
-          return;
-        }
-    
-        const token = currentUser.access;
-    
-        const response = await fetch('https://pacomprarserver.onrender.com/api/subastas/', {
+        
+        const response = await authFetch('https://pacomprarserver.onrender.com/api/subastas/', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify(auctionData),
         });
-    
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(JSON.stringify(errorData));
-        }
-    
-        const result = await response.json();
-        setSuccess('Auction created successfully!');
-    
-        setTimeout(() => {
-          router.push(`/subastas/${result.id}`);
-        }, 2000);
+
+          if (response.error || response.detail || response.status >= 400) {
+            throw new Error(
+              JSON.stringify(response.error || response.detail || response)
+            );
+          }
+  
+          // We already have JSON data, use directly
+          const result = response;
+          setSuccess('Subasta creada exitosamente!');
+          
+          setTimeout(() => {
+            router.push(`/subastas/${result.id}`);
+          }, 2000);
+
       } catch (err) {
-        console.error('Error creating auction:', err);
-        setError('Error creating auction. Please try again.');
+        console.error('Error al crear subasta:', err);
+        setError(`Error al crear la subasta: ${err.message}`);
       } finally {
         setLoading(false);
       }
     };
-
     if (loading) {
         return (
             <div className={styles.loading}>
@@ -266,20 +273,20 @@ export default function CreateAuctionPage() {
                 <div className={styles.formGroup}>
                   <label htmlFor="category">Categoría*</label>
                   <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    required
-                    className={styles.select}
-                  >
-                    <option value="">Seleccione una categoría</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  className={styles.select}
+                >
+                  <option value="">Seleccione una categoría</option>
+                  {Array.isArray(categories) && categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name || `Categoría ${category.id}`}
+                    </option>
+                  ))}
+                </select>
                 </div>
                 
                 <div className={styles.formGroup}>

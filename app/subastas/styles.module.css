@@ -11,12 +11,22 @@
   font-size: 1.8rem;
 }
 
+.subastasContent {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
 .filtersContainer {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background-color: white;
+  border-radius: 0.625rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5625rem;
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9375rem;
+  align-items: center;
 }
 
 .filterRow {
@@ -55,6 +65,47 @@
   box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
 }
 
+.searchInput {
+  flex: 1;
+  min-width: 12.5rem;
+  padding: 0.75rem 0.9375rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3f51b5;
+  box-shadow: 0 0 0 0.125rem rgba(63, 81, 181, 0.2);
+}
+
+.filterSelect {
+  flex: 0.5;
+  min-width: 9.375rem;
+  padding: 0.75rem 0.9375rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: white;
+  cursor: pointer;
+}
+
+.priceFilters {
+  display: flex;
+  gap: 0.625rem;
+  flex: 1;
+}
+
+.priceInput {
+  flex: 1;
+  padding: 0.75rem 0.9375rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
 .filterActions {
   display: flex;
   align-items: flex-end;
@@ -62,18 +113,23 @@
 }
 
 .resetButton {
-  background-color: #e0e0e0;
-  color: #333;
+  padding: 0.75rem 1.25rem;
+  background-color: #f5f5f5;
+  color: #666;
   border: none;
-  padding: 0.8rem 1.2rem;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-weight: 600;
+  transition: background-color 0.3s;
 }
 
-.resetButton:hover {
-  background-color: #d0d0d0;
+.resetButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.resetButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .resultsInfo {
@@ -81,9 +137,19 @@
   color: #666;
 }
 
+.resultsCount {
+  margin: 0.9375rem 0;
+  font-size: 1rem;
+  color: #666;
+}
+
 .loading {
-  text-align: center;
-  padding: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 18.75rem;
+  font-size: 1.125rem;
+  color: #666;
 }
 
 .spinner {
@@ -107,12 +173,28 @@
   gap: 1.5rem;
 }
 
+.auctionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 1.5625rem;
+}
+
 .noResults {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 3rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  padding: 2.5rem;
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  color: #6c757d;
+  font-size: 1.125rem;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.9375rem;
+  border-radius: 0.5rem;
+  margin: 1.25rem 0;
 }
 
 .tryAgainButton {
@@ -136,6 +218,15 @@
     flex-direction: column;
   }
   
+  .filtersContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .priceFilters {
+    flex-direction: column;
+  }
+
   .filterActions {
     margin-top: 1rem;
   }
@@ -146,5 +237,10 @@
   
   .auctionsList {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .auctionsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(15.625rem, 1fr));
+    gap: 0.9375rem;
   }
 }

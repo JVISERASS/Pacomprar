@@ -35,7 +35,7 @@ const Register = () => {
   };
 
   const validatePassword = (password) => {
-    // Al menos 8 caracteres y contener letras y números
+    // At least 8 characters and contain letters and numbers
     const regEx = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     return regEx.test(password);
   };
@@ -43,7 +43,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validaciones locales
+    // Local validations
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
@@ -54,11 +54,11 @@ const Register = () => {
       return;
     }
     
-    // Eliminar confirmPassword antes de enviar
+    // Remove confirmPassword before sending
     const userData = {...formData};
     delete userData.confirmPassword;
 
-    // Asegurarnos que birth_date tiene el formato correcto (YYYY-MM-DD)
+    // Make sure birth_date has correct format (YYYY-MM-DD)
     if (userData.birth_date) {
       const date = new Date(userData.birth_date);
       if (isNaN(date.getTime())) {
@@ -73,7 +73,7 @@ const Register = () => {
       setLoading(true);
       console.log('Enviando datos de registro:', userData);
       
-      // Aquí simulamos la llamada a la API
+      // Here we make API call
       const response = await fetch('https://das-p2-backend.onrender.com/api/users/register/', {
         method: 'POST',
         headers: {
@@ -82,16 +82,16 @@ const Register = () => {
         body: JSON.stringify(userData),
       });
       
-      // Obtener la respuesta
+      // Get the response
       const responseText = await response.text();
       
       if (!response.ok) {
-        // Procesar errores de la API
+        // Process API errors
         try {
           const errorData = JSON.parse(responseText);
           const errorMessages = [];
           
-          // Recorrer los errores y traducirlos
+          // Loop through the errors and translate them
           Object.entries(errorData).forEach(([field, messages]) => {
             const fieldName = getFieldDisplayName(field);
             if (Array.isArray(messages)) {
@@ -105,13 +105,13 @@ const Register = () => {
           
           setError(errorMessages.join('\n'));
         } catch (e) {
-          // Si no es JSON, mostrar el texto tal cual
+          // If not JSON, show text as is
           setError(`Error en el registro: ${responseText}`);
         }
         return;
       }
       
-      // Registro exitoso
+      // Successful registration
       setSuccess('Registro exitoso. Ya puedes iniciar sesión.');
       setTimeout(() => {
         router.push('/login');
@@ -124,7 +124,7 @@ const Register = () => {
     }
   };
   
-  // Función para obtener nombre legible de los campos
+  // Function to get readable field names
   const getFieldDisplayName = (field) => {
     const fieldNames = {
       username: 'Nombre de usuario',
@@ -140,7 +140,7 @@ const Register = () => {
     return fieldNames[field] || field;
   };
   
-  // Función para traducir mensajes de error comunes
+  // Function to translate common error messages
   const translateErrorMessage = (message) => {
     const translations = {
       'A user with that username already exists.': 'Este nombre de usuario ya está en uso',

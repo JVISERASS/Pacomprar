@@ -4,17 +4,23 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './styles.module.css';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthFetch } from '../../../hooks/useAuthFetch';
 
 const AuctionDetailPage = () => {
   const params = useParams();
   const router = useRouter();
   const [auction, setAuction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bidsHistory, setBidsHistory] = useState([]);
   const [error, setError] = useState(null);
   const [bidAmount, setBidAmount] = useState('');
+  const { currentUser } = useAuth();
+  const { authFetch, loading: fetchLoading } = useAuthFetch();
   
-  
-  // Función para formatear el precio correctamente
+  const [currentPrice, setCurrentPrice] = useState(0);
+  const [highestBid, setHighestBid] = useState(0);
+
   const formatPrice = (price) => {
     if (price === undefined || price === null || isNaN(price)) {
       return 'No disponible';
@@ -24,193 +30,225 @@ const AuctionDetailPage = () => {
       currency: 'EUR'
     }).format(price);
   };
-  
-  // Obtener imagen por defecto basada en la categoría
-  const getDefaultImage = (category) => {
-    // Mapeo de categorías a imágenes de ejemplo
-    const defaultImages = {
-      'electronica': '/images/prod_img/default-electronics.jpg',
-      'hogar': '/images/prod_img/default-home.jpg',
-      'moda': '/images/prod_img/default-fashion.jpg',
-      'deportes': '/images/prod_img/default-sports.jpg'
-    };
+
+  const renderStars = (rating) => {
+    if (rating === undefined || rating === null) return '☆☆☆☆☆';
     
-    return defaultImages[category] || '/images/prod_img/default-product.jpg';
+    const ratingNum = typeof rating === 'number' ? rating : parseFloat(rating);
+    
+    if (isNaN(ratingNum)) return '☆☆☆☆☆';
+    
+    const fullStars = Math.floor(ratingNum);
+    const halfStar = ratingNum % 1 >= 0.5 ? 1 : 0;
+    const emptyStars = 5 - fullStars - halfStar;
+    
+    return (
+      <>
+        {'★'.repeat(fullStars)}
+        {halfStar ? '½' : ''}
+        {'☆'.repeat(emptyStars)}
+        <span className={styles.ratingValue}>({ratingNum.toFixed(1)})</span>
+      </>
+    );
   };
-  
-  // Obtener datos de la subasta
+
   useEffect(() => {
-    const fetchAuction = async () => {
-      setLoading(true);
+    const fetchAuctionDetails = async () => {
+      if (!params.id) {
+        setError('ID de subasta no proporcionado');
+        return;
+      }
+
       try {
-        // Simulando una llamada a la API con datos de ejemplo
-        const mockAuctions = [
-          {
-            id: '1',
-            title: 'iPhone 13 Pro Max - 256GB',
-            description: 'iPhone 13 Pro Max en excelente estado. Incluye cargador y auriculares originales.',
-            currentBid: 650.00,
-            buyNowPrice: 900.00,
-            bids: 12,
-            seller: 'tecnoventas',
-            category: 'electronica',
-            endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '2',
-            title: 'Sofá de 3 plazas - Diseño moderno',
-            description: 'Sofá moderno de 3 plazas en color gris. Material de alta calidad y muy cómodo.',
-            currentBid: 250.00,
-            buyNowPrice: 450.00,
-            bids: 5,
-            seller: 'homefurnish',
-            category: 'hogar',
-            endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '3',
-            title: 'Zapatillas Nike Air Max - Talla 42',
-            description: 'Zapatillas Nike Air Max nuevas, sin estrenar. Talla 42 (EU).',
-            currentBid: 60.00,
-            buyNowPrice: null,
-            bids: 8,
-            seller: 'sportgear',
-            category: 'moda',
-            endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '4',
-            title: 'Bicicleta de montaña Specialized',
-            description: 'Bicicleta de montaña Specialized en excelente estado. Poco uso, como nueva.',
-            currentBid: 450.00,
-            buyNowPrice: 800.00,
-            bids: 3,
-            seller: 'cycleworld',
-            category: 'deportes',
-            endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: '5',
-            title: 'MacBook Pro 2022 - 16"',
-            description: 'MacBook Pro de 16 pulgadas, modelo 2022. Procesador M1 Max, 32GB RAM, 1TB SSD.',
-            currentBid: 1800.00,
-            buyNowPrice: 2400.00,
-            bids: 15,
-            seller: 'applefan',
-            category: 'electronica',
-            endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+        setLoading(true);
+        setError(null);
+        const data = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`);
+        console.log("Datos de la subasta:", data);
+        setAuction(data);
+        
+        setCurrentPrice(parseFloat(data.precio_actual) || parseFloat(data.precio_inicial) || 0);
+        
+        if (data.pujas && Array.isArray(data.pujas)) {
+          setBidsHistory(data.pujas);
+          
+          if (data.pujas.length > 0) {
+            const highestBidItem = data.pujas.reduce(
+              (max, bid) => parseFloat(bid.cantidad) > parseFloat(max.cantidad) ? bid : max,
+              data.pujas[0]
+            );
+            
+            const highestAmount = parseFloat(highestBidItem.cantidad);
+            setHighestBid(highestAmount);
+            
+            const minNextBid = (highestAmount * 1.05).toFixed(2);
+            setBidAmount(minNextBid);
+          } else {
+            const initialPrice = parseFloat(data.precio_inicial) || 0;
+            const minNextBid = (initialPrice * 1.05).toFixed(2);
+            setBidAmount(minNextBid);
           }
-        ];
-        
-        // Esperar un poco para simular carga
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        if (!params.id) {
-          setError('No se proporcionó un ID válido para la subasta.');
-          return;
-        }
-
-        if (params.id === 'crear') {
-          router.push('/subastas/crear');
-          return;
-        }
-
-        const foundAuction = mockAuctions.find(item => item.id === params.id);
-
-        if (foundAuction) {
-          setAuction(foundAuction);
-        } else {
-          setError('No se encontró la subasta especificada.');
         }
       } catch (err) {
-        console.error(err);
-        setError('Ocurrió un error al cargar la subasta.');
+        console.error('Error al cargar detalles de la subasta:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchAuction();
-  }, [params.id]);
-  
-  // Manejar el envío de una puja
-  const handleSubmit = (e) => {
+    fetchAuctionDetails();
+  }, [params.id, authFetch]); 
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!bidAmount) return;
-    
-    // En una app real, aquí enviaríamos la puja al servidor
-    alert(`Has pujado ${bidAmount}€ por "${auction.title}"`);
-    
-    // Simular una subasta exitosa
-    setAuction(prev => ({
-      ...prev,
-      currentBid: parseFloat(bidAmount),
-      bids: prev.bids + 1
-    }));
-    
-    setBidAmount('');
-  };
+    if (!params.id) {
+      setError('ID de subasta no proporcionado');
+      return;
+    }
   
-  if (loading) {
+    try {
+      setLoading(true);
+      setError(null);
+  
+      const data = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/pujas/`, {
+        method: 'POST',
+        body: JSON.stringify({ cantidad: bidAmount }),
+      });
+  
+      console.log('Puja realizada con éxito:', data);
+      
+      const newBidAmount = parseFloat(data.cantidad);
+      setCurrentPrice(newBidAmount);
+      setHighestBid(newBidAmount);
+      
+      const minNextBid = (newBidAmount * 1.05).toFixed(2);
+      setBidAmount(minNextBid);
+      
+      const auctionData = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`);
+      setAuction(auctionData);
+      
+      if (auctionData.pujas && Array.isArray(auctionData.pujas)) {
+        setBidsHistory(auctionData.pujas);
+      }
+      
+      alert(`¡Puja realizada con éxito! Tu puja: ${formatPrice(newBidAmount)}`);
+    } catch (err) {
+      console.error('Error al hacer puja:', err);
+      setError(err.message);
+      alert(`Error al hacer puja: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'Fecha no disponible';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading || fetchLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
-        <p>Cargando subasta...</p>
+        <p>Cargando detalles de la subasta...</p>
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className={styles.errorContainer}>
-        <p>{error}</p>
+        <p className={styles.errorMessage}>{error}</p>
+        <button onClick={() => router.back()} className={styles.backButton}>
+          ← Volver
+        </button>
       </div>
     );
   }
-  
-  // Ensure auction is not null or undefined before destructuring
+
   if (!auction) {
-    return null;
+    return (
+      <div className={styles.errorContainer}>
+        <p>No se encontró la subasta solicitada</p>
+        <button onClick={() => router.back()} className={styles.backButton}>
+          ← Volver
+        </button>
+      </div>
+    );
   }
 
-  const { title, description, currentBid, buyNowPrice, bids, seller, category, endDate } = auction;
-  
-  // Determinar la imagen a mostrar usando la categoría para seleccionar una imagen por defecto
-  const imageToShow = getDefaultImage(category);
-  
-  // Comprobar si la subasta ha finalizado
+  const isOwner = currentUser && auction?.usuario === currentUser.id;
+
+  const title = auction?.titulo || 'Sin título';
+  const description = auction?.descripcion || 'Sin descripción';
+  const category = auction?.categoria_nombre || 'Sin categoría';
+  const endDate = auction?.fecha_cierre || new Date().toISOString();
   const isAuctionEnded = new Date(endDate) < new Date();
-  const minBidAmount = currentBid + (currentBid * 0.05); // Mínimo 5% más que la puja actual
   
+  const precio_actual = parseFloat(auction?.precio_actual) || parseFloat(auction?.precio_inicial) || 0;
+  const numBids = bidsHistory.length || 0;
+  const buyNowPrice = (precio_actual * 1.3).toFixed(2);
+  const minBidAmount = (precio_actual * 1.05).toFixed(2);
+  
+  const seller = auction?.usuario_nombre || 'Vendedor no disponible';
+  const imageToShow = auction?.imagen || '/images/prod_img/default-product.jpg';
+
   return (
-    <div className={styles.container}>
+    <div className={styles.auctionDetailContainer}>
       <button onClick={() => router.back()} className={styles.backButton}>
         ← Volver
       </button>
       
-      <h1 className={styles.title}>{title}</h1>
+      <div className={styles.auctionHeader}>
+        <h1 className={styles.title}>{title}</h1>
+        
+        <div className={styles.ratingDisplay}>
+          <span className={styles.stars}>{renderStars(auction?.valoracion)}</span>
+        </div>
+        
+        {isOwner && (
+          <button 
+            onClick={() => router.push(`/subastas/${params.id}/editar`)}
+            className={styles.editButton}
+          >
+            ✏️ Editar Subasta
+          </button>
+        )}
+      </div>
       
       <div className={styles.infoBar}>
-        <div className={styles.category}>Categoría: {category}</div>
+        <div className={styles.category}>Categoría: <strong>{category}</strong></div>
         <div className={styles.timeRemaining}>
           {isAuctionEnded ? (
             <span className={styles.endedBadge}>Subasta finalizada</span>
           ) : (
-            <>Finaliza el: {new Date(endDate).toLocaleDateString()}</>
+            <>Finaliza el: <strong>{formatDateTime(endDate)}</strong></>
           )}
         </div>
       </div>
       
       <div className={styles.mainContent}>
         <div className={styles.leftCol}>
-          {/* Imagen del producto */}
           <div className={styles.productImageContainer}>
-            <Image 
+            <Image
               src={imageToShow}
               alt={title}
               width={500}
               height={350}
               className={styles.productImage}
+              style={{
+                objectFit: 'contain',
+                width: '100%',
+                height: 'auto'
+              }}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = '/images/prod_img/default-product.jpg';
@@ -219,90 +257,137 @@ const AuctionDetailPage = () => {
           </div>
           
           <div className={styles.descriptionBox}>
-            <h3>Descripción</h3>
+            <h3 className={styles.sectionTitle}>Descripción</h3>
             <p>{description}</p>
           </div>
           
           <div className={styles.sellerBox}>
-            <h3>Vendedor</h3>
+            <h3 className={styles.sectionTitle}>Vendedor</h3>
             <div className={styles.sellerInfo}>
-              <p className={styles.sellerName}>{seller}</p>
-              <div className={styles.sellerStats}>
-                <span className={styles.sellerRating}>⭐⭐⭐⭐☆ (4.2)</span>
-                <span className={styles.sellerSales}>134 ventas</span>
+              <div className={styles.sellerAvatar}>👤</div>
+              <div className={styles.sellerDetails}>
+                <p className={styles.sellerName}>{seller}</p>
+                {auction?.fecha_registro && (
+                  <p className={styles.sellerSince}>
+                    Miembro desde: {formatDateTime(auction.fecha_registro)}
+                  </p>
+                )}
               </div>
             </div>
+          </div>
+          
+          <div className={styles.bidsHistoryBox}>
+            <h3 className={styles.sectionTitle}>Historial de Pujas</h3>
+            {Array.isArray(bidsHistory) && bidsHistory.length > 0 ? (
+              <table className={styles.bidsTable}>
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Cantidad</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bidsHistory.map((bid, index) => (
+                    <tr key={bid.id} className={currentUser && bid.pujador === currentUser.id ? styles.userBid : ''}>
+                      <td>{bid.pujador_nombre || `Usuario #${bid.pujador}`}</td>
+                      <td>{formatPrice(bid.cantidad)}</td>
+                      <td>{formatDateTime(bid.fecha_puja)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className={styles.noBids}>No hay pujas realizadas aún.</p>
+            )}
           </div>
         </div>
         
         <div className={styles.rightCol}>
           <div className={styles.bidBox}>
-            <h3>Información de la subasta</h3>
+            <h3 className={styles.sectionTitle}>Información de puja</h3>
             
             <div className={styles.priceInfo}>
-              <p>
-                <span className={styles.priceLabel}>Puja actual:</span>
-                <span className={styles.priceValue}>{formatPrice(currentBid)}</span>
+              <p className={styles.priceRow}>
+                <span className={styles.priceLabel}>Precio actual:</span>
+                <span className={styles.priceValue}>{formatPrice(precio_actual)}</span>
               </p>
               
-              <p>
-                <span className={styles.priceLabel}>Número de pujas:</span>
-                <span>{bids}</span>
+              <p className={styles.priceRow}>
+                <span className={styles.priceLabel}>Pujas realizadas:</span>
+                <span className={styles.bidCount}>{numBids}</span>
               </p>
               
-              {buyNowPrice && (
-                <p>
-                  <span className={styles.priceLabel}>Comprar ya por:</span>
-                  <span className={styles.buyNowValue}>{formatPrice(buyNowPrice)}</span>
-                </p>
-              )}
+              <p className={styles.priceRow}>
+                <span className={styles.priceLabel}>Comprar ahora:</span>
+                <span className={styles.buyNowPrice}>{formatPrice(buyNowPrice)}</span>
+              </p>
             </div>
             
-            {!isAuctionEnded ? (
-              <>
-                <form onSubmit={handleSubmit} className={styles.bidForm}>
-                  <div className={styles.bidInputGroup}>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={minBidAmount}
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(e.target.value)}
-                      placeholder={`Mínimo ${formatPrice(minBidAmount)}`}
-                      className={styles.bidInput}
-                      required
-                    />
-                    <span className={styles.euroSymbol}>€</span>
-                  </div>
-                  <button type="submit" className={styles.bidButton}>Pujar</button>
-                </form>
+            {!isAuctionEnded && !isOwner ? (
+              <form onSubmit={handleSubmit} className={styles.bidForm}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="bidAmount">Tu puja:</label>
+                  <input
+                    id="bidAmount"
+                    type="number"
+                    min={minBidAmount}
+                    step="0.01"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    className={styles.bidInput}
+                    placeholder={`Mínimo ${formatPrice(minBidAmount)}`}
+                    required
+                  />
+                  <small className={styles.bidInfo}>
+                    La puja mínima es de {formatPrice(minBidAmount)}
+                  </small>
+                </div>
                 
-                {buyNowPrice && (
-                  <button className={styles.buyNowButton}>
-                    Comprar ahora ({formatPrice(buyNowPrice)})
-                  </button>
+                <button 
+                  type="submit" 
+                  className={styles.bidButton}
+                  disabled={loading || !currentUser}
+                >
+                  {loading ? 'Procesando...' : 'Realizar Puja'}
+                </button>
+                
+                <button 
+                  type="button"
+                  className={styles.buyNowButton}
+                  disabled={loading || !currentUser}
+                  onClick={() => {
+                    if (currentUser) {
+                      setBidAmount(buyNowPrice);
+                      setTimeout(() => {
+                        if (confirm(`¿Confirmar compra directa por ${formatPrice(buyNowPrice)}?`)) {
+                          const event = { preventDefault: () => {} };
+                          handleSubmit(event);
+                        }
+                      }, 100);
+                    } else {
+                      alert("Debes iniciar sesión para comprar");
+                    }
+                  }}
+                >
+                  Comprar Ahora por {formatPrice(buyNowPrice)}
+                </button>
+                
+                {!currentUser && (
+                  <p className={styles.loginRequired}>
+                    <a href="/login">Inicia sesión</a> para participar en esta subasta
+                  </p>
                 )}
-              </>
+              </form>
             ) : (
-              <div className={styles.auctionEnded}>
-                <p>Esta subasta ha finalizado</p>
+              <div className={styles.notAvailable}>
+                {isAuctionEnded ? (
+                  <p>Esta subasta ha finalizado</p>
+                ) : isOwner ? (
+                  <p>No puedes pujar en tu propia subasta</p>
+                ) : null}
               </div>
             )}
-            
-            <div className={styles.bidTips}>
-              <h4>Consejos para pujar:</h4>
-              <ul>
-                <li>Revisa detenidamente la descripción y las imágenes</li>
-                <li>Comprueba la valoración del vendedor</li>
-                <li>Incrementa tu puja en al menos un 5% sobre la puja actual</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className={styles.shippingInfo}>
-            <h3>Información de envío</h3>
-            <p>Envío estándar: 3-5 días laborables</p>
-            <p>Coste de envío: A determinar según ubicación</p>
           </div>
         </div>
       </div>

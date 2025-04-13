@@ -26,7 +26,7 @@ export default function UserProfileEditPage() {
   const { currentUser, getUserProfile, updateUserProfile } = useAuth();
   const router = useRouter();
 
-  // Cargar los datos del perfil del usuario al montar el componente
+  // Load user profile data when component mounts
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!currentUser) {
@@ -40,13 +40,13 @@ export default function UserProfileEditPage() {
         
         const profile = await getUserProfile();
         
-        // Formatear la fecha para el input de tipo date
+        // Format date for input type date
         let formattedDate = '';
         if (profile.birth_date) {
           formattedDate = new Date(profile.birth_date).toISOString().split('T')[0];
         }
         
-        // Rellenar el formulario con los datos del perfil
+        // Fill form with profile data
         setFormData({
           username: profile.username || '',
           email: profile.email || '',
@@ -60,9 +60,9 @@ export default function UserProfileEditPage() {
         });
       } catch (err) {
         console.error('Error al cargar perfil:', err);
-        setError('Error al cargar el perfil. Por favor, inténtalo de nuevo más tarde.');
+        setError('Error al cargar el perfil. Por favor, inténtelo de nuevo más tarde.');
         
-        // Si la sesión expiró, redirigir al login
+        // If session expired, redirect to login
         if (err.message.includes('Sesión expirada')) {
           router.push('/login');
         }
@@ -83,8 +83,8 @@ export default function UserProfileEditPage() {
   };
 
   const validatePassword = (password) => {
-    if (!password) return true; // Si no hay contraseña, no validamos (no se va a actualizar)
-    // Al menos 8 caracteres y contener letras y números
+    if (!password) return true; // If no password, do not validate (it will not be updated)
+    // At least 8 characters and contain letters and numbers
     const regEx = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     return regEx.test(password);
   };
@@ -92,7 +92,7 @@ export default function UserProfileEditPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validaciones
+    // Form validations
     if (formData.password) {
       if (formData.password !== formData.confirmPassword) {
         setError('Las contraseñas no coinciden');
@@ -105,16 +105,16 @@ export default function UserProfileEditPage() {
       }
     }
     
-    // Preparar datos para actualización
+    // Prepare data for updating
     const updateData = {...formData};
     delete updateData.confirmPassword;
     
-    // Si no hay nueva contraseña, no enviarla
+    // If no new password, don't send it
     if (!updateData.password) {
       delete updateData.password;
     }
     
-    // Asegurarnos que birth_date tiene el formato correcto
+    // Make sure birth_date has correct format
     if (updateData.birth_date) {
       const date = new Date(updateData.birth_date);
       if (isNaN(date.getTime())) {
@@ -133,7 +133,7 @@ export default function UserProfileEditPage() {
       
       setSuccess('Perfil actualizado correctamente');
       
-      // Limpiar campos de contraseña
+      // Clear password fields
       setFormData(prev => ({
         ...prev,
         password: '',
@@ -142,9 +142,9 @@ export default function UserProfileEditPage() {
     } catch (err) {
       console.error('Error al actualizar perfil:', err);
       
-      // Comprobar si el error contiene información detallada de validación
+      // Check if the error contains detailed validation information
       if (err.validationErrors) {
-        // Mostrar los errores específicos de la API en un formato más amigable
+        // Display specific API errors in a more user-friendly format
         const errorMessages = [];
         
         Object.entries(err.validationErrors).forEach(([field, messages]) => {
@@ -161,7 +161,7 @@ export default function UserProfileEditPage() {
         
         setError(errorMessages.join('\n'));
       } else if (err.message && err.message.includes('{')) {
-        // Intentar extraer y formatear JSON incluido en el mensaje de error
+        // Try to extract and format JSON included in the error message
         try {
           const jsonStart = err.message.indexOf('{');
           const jsonEnd = err.message.lastIndexOf('}') + 1;
@@ -183,7 +183,7 @@ export default function UserProfileEditPage() {
           
           setError(errorMessages.join('\n'));
         } catch (e) {
-          // Si falla el parseo, mostrar mensaje original
+          // If parsing fails, show original message
           setError(formatErrorMessage(err.message));
         }
       } else {
@@ -194,7 +194,7 @@ export default function UserProfileEditPage() {
     }
   };
   
-  // Función para obtener nombre legible de los campos
+  // Function to get display name for fields
   const getFieldDisplayName = (field) => {
     const fieldNames = {
       username: 'Nombre de usuario',
@@ -210,9 +210,9 @@ export default function UserProfileEditPage() {
     return fieldNames[field] || field;
   };
   
-  // Función para formatear mensajes de error
+  // Function to format error messages
   const formatErrorMessage = (message) => {
-    // Traducción de mensajes comunes de error
+    // Translation of common error messages
     const translations = {
       'A user with that username already exists.': 'Este nombre de usuario ya está en uso.',
       'This password is too common.': 'Esta contraseña es demasiado común.',
@@ -226,7 +226,7 @@ export default function UserProfileEditPage() {
     return translations[message] || message;
   };
 
-  // Si está cargando, mostrar un mensaje
+  // If loading, show a message
   if (loading) {
     return <div className={styles.loading}>Cargando información del perfil...</div>;
   }
