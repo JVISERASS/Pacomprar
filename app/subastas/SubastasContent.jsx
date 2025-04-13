@@ -24,9 +24,31 @@ export default function SubastasContent() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Add state for categories
+  const [categories, setCategories] = useState([]);
 
   // Get authFetch hook
   const { authFetch, loading: fetchLoading, error: fetchError } = useAuthFetch();
+  
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/subastas/categorias/`);
+        if (!response.ok) {
+          throw new Error('Error fetching categories');
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        // Use empty array if there's an error, so the app still works
+        setCategories([]);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
   
   // Image URL sanitizer function
   const getSafeImageUrl = (imageUrl) => {
@@ -180,11 +202,11 @@ export default function SubastasContent() {
           className={styles.filterSelect}
         >
           <option value="">Todas las categorías</option>
-          <option value="1">Smartphones</option>
-          <option value="2">Laptops</option>
-          <option value="3">Hogar</option>
-          <option value="4">Moda</option>
-          <option value="5">Deportes</option>
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>
+              {category.nombre}
+            </option>
+          ))}
         </select>
         <div className={styles.priceFilters}>
           <input
