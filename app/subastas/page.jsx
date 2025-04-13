@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useAuctionFilters } from './hooks';
 import styles from './styles.module.css';
 import AuctionItem from '../../components/AuctionItem/AuctionItem';
 import SubastasContent from './SubastasContent';

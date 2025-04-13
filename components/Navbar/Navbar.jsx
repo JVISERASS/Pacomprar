@@ -1,20 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import styles from './styles.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaSearch } from 'react-icons/fa';
 
-
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
+  const searchParams = useSearchParams();
+  
+  // Initialize search term from URL if we're on the auctions page
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (pathname === '/subastas') {
+      return searchParams.get('search') || '';
+    }
+    return '';
+  });
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Update search term when URL changes
+  useEffect(() => {
+    if (pathname === '/subastas') {
+      const urlSearchTerm = searchParams.get('search') || '';
+      setSearchTerm(urlSearchTerm);
+    }
+  }, [pathname, searchParams]);
 
   const handleLogout = () => {
     logout();
@@ -23,8 +39,16 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    
     if (searchTerm.trim()) {
+      // Navigate to subastas page with search parameter
       router.push(`/subastas?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else if (pathname === '/subastas') {
+      // If on subastas page and search is cleared, remove the search param
+      const currentParams = new URLSearchParams(searchParams.toString());
+      currentParams.delete('search');
+      const newQuery = currentParams.toString() ? `?${currentParams.toString()}` : '';
+      router.push(`/subastas${newQuery}`);
     }
   };
 
@@ -56,8 +80,9 @@ const Navbar = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
+            aria-label="Buscar subastas"
           />
-          <button type="submit" className={styles.searchButton}>
+          <button type="submit" className={styles.searchButton} aria-label="Buscar">
             <FaSearch />
           </button>
         </form>
@@ -93,7 +118,10 @@ const Navbar = () => {
                   <Link href="/usuario" className={styles.dropdownItem}>
                     Editar Perfil
                   </Link>
-                  <Link href="/mis-subastas" className={styles.dropdownItem}>
+                  <Link href="/usuario/mis_pujas" className={styles.dropdownItem}>
+                    Mis Pujas
+                  </Link>
+                  <Link href="/subastas/mis_subastas" className={styles.dropdownItem}>
                     Mis Subastas
                   </Link>
                   <button

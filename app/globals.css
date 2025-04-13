@@ -17,20 +17,17 @@ body, h1, p, button, input {
   font-family: Arial, sans-serif;
 }
 
-/* Layout general: estructura de página con position fixed para header y footer */
+/* Layout general: estructura de página con footer natural */
 .layout-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  position: relative;
-  padding-top: 100px; /* Espacio para el header fijo */
-  padding-bottom: 100px; /* Espacio para el footer fijo */
 }
 
 main {
   flex: 1;
-  padding: 20px;
-  min-height: calc(100vh - 200px); /* Ajustado para los nuevos tamaños */
+  padding-top: 100px; /* Espacio para el header fijo */
+  padding-bottom: 1rem;
 }
 
 /* ========================= */
@@ -40,14 +37,15 @@ main {
   display: flex;
   align-items: center;
   background-color: #fff;
-  padding: 25px 40px; /* Padding más sustancial */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
-  height: 100px; /* Altura mucho más grande */
-  position: fixed; /* Fijado en la parte superior */
+  padding: 25px 40px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  height: 100px;
+  position: fixed; /* Mantenemos position fixed */
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000; /* Asegura que esté por encima de otros elementos */
+  z-index: 1000;
+  width: 100%; /* Aseguramos que ocupe todo el ancho */
 }
 
 .header__logo {
@@ -109,16 +107,11 @@ main {
   text-align: center;
   background-color: #333;
   color: white;
-  padding: 30px 0; /* Padding sustancialmente mayor */
-  position: fixed; /* Fijado en la parte inferior */
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100px; /* Altura fija y más grande */
-  z-index: 1000; /* Asegura que esté por encima de otros elementos */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  padding: 30px 0;
+  position: relative; /* Cambiado de fixed a relative */
+  width: 100%;
+  height: auto;
+  z-index: 900;
 }
 
 .footer p {

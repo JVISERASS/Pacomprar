@@ -1,254 +1,128 @@
-const API_URL = "https://das-p2-backend.onrender.com/api/users/";
+const API_URL = "https://pacomprarserver.onrender.com/api";
 
-const login = async (username, password) => {
-  try {
-    // Asegurarnos de que la URL tiene la barra final
-    const loginUrl = `${API_URL}login/`;
-    console.log('Intentando login en:', loginUrl);
-    
-    const response = await fetch(loginUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      // Asegurarnos de que enviamos los datos exactos que espera la API
-      body: JSON.stringify({ username, password }),
-    });
-
-    // Primero obtenemos el texto de la respuesta para diagnóstico
-    const responseText = await response.text();
-    console.log('Respuesta del servidor:', responseText);
-
-    // Si la respuesta parece HTML, es un error especial
-    if (responseText.trim().startsWith('<!DOCTYPE')) {
-      throw new Error('El servidor devolvió HTML en lugar de JSON. Comprueba la URL y la conexión.');
-    }
-
-    // Si no hay respuesta, lanzar error
-    if (!responseText.trim()) {
-      throw new Error('El servidor devolvió una respuesta vacía');
-    }
-
-    // Intentar parsear como JSON
-    let data;
+class AuthService {
+  async login(username, password) {
     try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Error al parsear JSON:', parseError);
-      console.error('Texto recibido:', responseText);
-      throw new Error('La respuesta del servidor no es JSON válido');
-    }
+      const response = await fetch(`${API_URL}/token/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
 
-    // Si la respuesta no fue ok, lanzar un error con el detalle
-    if (!response.ok) {
-      // Si los datos de error tienen un formato específico, procesarlos
-      if (data && typeof data === 'object') {
-        // Crear un error personalizado con los mensajes de validación
-        const error = new Error('Error al iniciar sesión');
-        error.validationErrors = data; // Guardamos el objeto completo de errores
-        error.statusCode = response.status;
-        throw error;
-      } else {
-        throw new Error(data.detail || 'Error al iniciar sesión');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Error de inicio de sesión');
       }
-    }
 
-    // Verificar que tenemos los datos esperados
-    if (!data.access) {
-      throw new Error('La respuesta del servidor no contiene un token de acceso');
-    }
-
-    // Guardar el usuario en localStorage
-    localStorage.setItem('user', JSON.stringify({
-      username: data.username || username,
-      access: data.access
-    }));
-    
-    return data;
-  } catch (error) {
-    console.error('Error en login:', error);
-    throw error;
-  }
-};
-
-const register = async (userData) => {
-  try {
-    const response = await fetch(`${API_URL}register/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-
-    // Obtener el texto de la respuesta para diagnóstico
-    const responseText = await response.text();
-    console.log('Respuesta cruda del servidor (registro):', responseText);
-    
-    // Si la respuesta no es OK, procesamos el error
-    if (!response.ok) {
-      // Intentamos parsear como JSON para extraer mensajes de error específicos
-      try {
-        const errorData = JSON.parse(responseText);
-        console.log('Datos de error de API:', errorData);
-        
-        // Crear un error personalizado con los mensajes de validación
-        const error = new Error('Error en el registro');
-        error.validationErrors = errorData; // Guardamos el objeto completo de errores
-        error.statusCode = response.status;
-        throw error;
-      } catch (parseError) {
-        // Si no podemos parsear como JSON, usamos el texto de respuesta directamente
-        if (responseText && responseText.trim()) {
-          throw new Error('Error en el registro. Por favor, inténtalo de nuevo.');
-        } else {
-          throw new Error(`Error en el registro (código ${response.status})`);
-        }
-      }
-    }
-
-    // Parsear respuesta exitosa
-    try {
-      return JSON.parse(responseText);
-    } catch (parseError) {
-      throw new Error('Error al procesar la respuesta del servidor');
-    }
-  } catch (error) {
-    console.error('Error detallado en el registro:', error);
-    throw error;
-  }
-};
-
-// Actualizamos también la función de actualización de perfil para ser consistente
-const updateUserProfile = async (userData) => {
-  try {
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    if (!user || !user.access) {
-      throw new Error('No hay token de autenticación');
-    }
-
-    console.log('Actualizando perfil con datos:', userData);
-    
-    const response = await fetch(`${API_URL}profile/`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.access}`,
-      },
-      body: JSON.stringify(userData),
-    });
-
-    // Obtener el texto de respuesta para diagnóstico
-    const responseText = await response.text();
-    console.log('Respuesta del servidor en actualización:', responseText);
-    
-    // Manejar errores
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Token expirado o inválido
-        logout();
-        throw new Error('Sesión expirada, por favor inicie sesión nuevamente');
-      }
+      const data = await response.json();
       
-      // Intentar parsear como JSON para extraer mensajes de error específicos
-      try {
-        const errorData = JSON.parse(responseText);
-        console.log('Datos de error de API:', errorData);
-        
-        // Crear un error personalizado con los mensajes de validación
-        const error = new Error('Error al actualizar perfil');
-        error.validationErrors = errorData;
-        error.statusCode = response.status;
-        throw error;
-      } catch (parseError) {
-        // Si no podemos parsear como JSON, usamos el texto de respuesta directamente
-        if (responseText && responseText.trim()) {
-          throw new Error('Error al actualizar perfil. Por favor, inténtalo de nuevo.');
-        } else {
-          throw new Error(`Error al actualizar perfil (código ${response.status})`);
-        }
-      }
+      // Save tokens and user in localStorage
+      localStorage.setItem('user', JSON.stringify({
+        id: this.parseJwt(data.access).user_id,
+        username: data.username,
+        access: data.access,
+        refresh: data.refresh
+      }));
+      
+      return this.getCurrentUser();
+    } catch (error) {
+      console.error('Error en AuthService.login:', error);
+      throw error;
     }
-
-    // Parsear la respuesta exitosa
-    try {
-      return JSON.parse(responseText);
-    } catch (parseError) {
-      throw new Error('Error al procesar la respuesta del servidor');
-    }
-  } catch (error) {
-    console.error('Error detallado en updateUserProfile:', error);
-    throw error;
   }
-};
 
-const getUserProfile = async () => {
-  try {
-    const user = JSON.parse(localStorage.getItem('user'));
+  logout() {
+    const user = this.getCurrentUser();
     
-    if (!user || !user.access) {
-      throw new Error('No hay token de autenticación');
+    if (user && user.refresh) {
+      fetch(`${API_URL}/usuarios/log-out/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: user.refresh })
+      }).catch(error => console.error('Error en logout:', error));
     }
+    // If backend fails to log out, we still clear localStorage
+    // to ensure user is logged out on frontend
+    localStorage.removeItem('user');
+  }
 
-    const response = await fetch(`${API_URL}profile/`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.access}`,
-      },
+  async register(userData) {
+    const response = await fetch(`${API_URL}/usuarios/registro/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
     });
 
-    // Obtener el texto de la respuesta para diagnóstico
-    const responseText = await response.text();
-    console.log('Respuesta del servidor (perfil):', responseText);
-
-    // Si la respuesta no es OK, procesamos el error
     if (!response.ok) {
-      if (response.status === 401) {
-        // Token expirado o inválido
-        logout();
-        throw new Error('Sesión expirada, por favor inicie sesión nuevamente');
-      }
+      const errorData = await response.json();
+      throw new Error(
+        errorData.detail || 
+        Object.values(errorData).flat().join(', ') || 
+        'Error de registro'
+      );
+    }
 
-      try {
-        const errorData = JSON.parse(responseText);
-        throw new Error(errorData.detail || errorData.message || 'Error al obtener perfil');
-      } catch (parseError) {
-        throw new Error('Error al obtener perfil');
-      }
+    return response.json();
+  }
+
+  getCurrentUser() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async refreshToken() {
+    const user = this.getCurrentUser();
+    
+    if (!user || !user.refresh) {
+      return null;
     }
 
     try {
-      return JSON.parse(responseText);
-    } catch (parseError) {
-      throw new Error('Error al procesar la respuesta del servidor');
+      const response = await fetch(`${API_URL}/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: user.refresh })
+      });
+
+      if (!response.ok) {
+        this.logout();
+        return null;
+      }
+
+      const data = await response.json();
+      
+      // Update access token in localStorage
+      const updatedUser = { ...user, access: data.access };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('Error al actualizar token:', error);
+      this.logout();
+      return null;
     }
-  } catch (error) {
-    console.error('Error en getUserProfile:', error);
-    throw error;
   }
-};
-
-const logout = () => {
-  localStorage.removeItem('user');
-};
-
-const getCurrentUser = () => {
-  if (typeof window === 'undefined') {
-    return null;
+  parseJwt(token) {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+      return null;
+    }
   }
-  return JSON.parse(localStorage.getItem('user'));
-};
 
-const AuthService = {
-  login,
-  register,
-  getUserProfile,
-  updateUserProfile,
-  logout,
-  getCurrentUser,
-};
+  isTokenExpired() {
+    const user = this.getCurrentUser();
+    if (!user || !user.access) return true;
+    
+    const decodedJwt = this.parseJwt(user.access);
+    return decodedJwt.exp * 1000 < Date.now();
+  }
+}
 
-export default AuthService;
+export default new AuthService();
