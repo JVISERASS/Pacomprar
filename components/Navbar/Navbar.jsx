@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -8,21 +8,18 @@ import styles from './styles.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaSearch } from 'react-icons/fa';
 
-const Navbar = () => {
-  const { currentUser, logout } = useAuth();
+// Separate component for search functionality to be wrapped in Suspense
+function SearchComponent() {
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   
-  // Initialize search term from URL if we're on the auctions page
   const [searchTerm, setSearchTerm] = useState(() => {
     if (pathname === '/subastas') {
       return searchParams.get('search') || '';
     }
     return '';
   });
-  
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Update search term when URL changes
   useEffect(() => {
@@ -31,11 +28,6 @@ const Navbar = () => {
       setSearchTerm(urlSearchTerm);
     }
   }, [pathname, searchParams]);
-
-  const handleLogout = () => {
-    logout();
-    router.push('/');
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -50,6 +42,52 @@ const Navbar = () => {
       const newQuery = currentParams.toString() ? `?${currentParams.toString()}` : '';
       router.push(`/subastas${newQuery}`);
     }
+  };
+
+  return (
+    <form className={styles.searchForm} onSubmit={handleSearch}>
+      <input 
+        type="text" 
+        placeholder="Buscar subastas..." 
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className={styles.searchInput}
+        aria-label="Buscar subastas"
+      />
+      <button type="submit" className={styles.searchButton} aria-label="Buscar">
+        <FaSearch />
+      </button>
+    </form>
+  );
+}
+
+// Fallback component for search while suspended
+function SearchFallback() {
+  return (
+    <form className={styles.searchForm}>
+      <input 
+        type="text" 
+        placeholder="Cargando buscador..." 
+        disabled
+        className={styles.searchInput}
+        aria-label="Buscar subastas"
+      />
+      <button type="submit" className={styles.searchButton} aria-label="Buscar" disabled>
+        <FaSearch />
+      </button>
+    </form>
+  );
+}
+
+const Navbar = () => {
+  const { currentUser, logout } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
   };
 
   const toggleMobileMenu = () => {
@@ -73,19 +111,9 @@ const Navbar = () => {
           </Link>
         </div>
         
-        <form className={styles.searchForm} onSubmit={handleSearch}>
-          <input 
-            type="text" 
-            placeholder="Buscar subastas..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-            aria-label="Buscar subastas"
-          />
-          <button type="submit" className={styles.searchButton} aria-label="Buscar">
-            <FaSearch />
-          </button>
-        </form>
+        <Suspense fallback={<SearchFallback />}>
+          <SearchComponent />
+        </Suspense>
         
         <div className={styles.mobileMenuToggle} onClick={toggleMobileMenu}>
           <div className={`${styles.menuBar} ${mobileMenuOpen ? styles.open : ''}`}></div>
