@@ -665,3 +665,126 @@
     margin-bottom: 2rem;
   }
 }
+
+
+.ratingSection {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ratingForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.userRatingInput {
+  margin: 15px 0;
+}
+
+.userRatingDisplay {
+  margin: 10px 0;
+}
+
+.ratingButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.ratingButton:hover {
+  background-color: #45a049;
+}
+
+.ratingButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.ratingSubmitted {
+  text-align: center;
+  color: #388e3c;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+/* Estilos para la sección de valoraciones */
+.ratingBox {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.ratingForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+  gap: 15px;
+}
+
+.ratingSuccess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.ratingDisplay {
+  margin: 10px 0;
+}
+
+.ratingButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.ratingButton:hover {
+  background-color: #45a049;
+}
+
+.ratingButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.loginRequired {
+  text-align: center;
+  margin: 15px 0;
+  font-style: italic;
+  color: #666;
+}
+
+.loginRequired a {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+.ratingSuccess {
+  text-align: center;
+  margin: 15px 0;
+  color: #388e3c;
+  font-weight: 500;
+}

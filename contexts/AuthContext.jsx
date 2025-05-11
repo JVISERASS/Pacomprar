@@ -22,22 +22,48 @@ export const AuthProvider = ({ children }) => {
       password: password
     };
     
-    const response = await fetch('https://pacomprarserver.onrender.com/api/token/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
+    try {
+      const tokenResponse = await fetch('https://pacomprarserver.onrender.com/api/token/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+  
+      if (!tokenResponse.ok) {
+        throw new Error('Login failed');
+      }
+  
+      const tokenData = await tokenResponse.json();
 
-    if (!response.ok) {
-      throw new Error('Login failed');
+      const profileResponse = await fetch('https://pacomprarserver.onrender.com/api/usuarios/profile/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${tokenData.access}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!profileResponse.ok) {
+        throw new Error('No se pudo obtener el perfil de usuario');
+      }
+      
+      const profileData = await profileResponse.json();
+      
+      const completeUser = {
+        ...tokenData,
+        ...profileData
+      };
+      
+      localStorage.setItem('pacomprarUser', JSON.stringify(completeUser));
+      setCurrentUser(completeUser);
+      return completeUser;
+      
+    } catch (error) {
+      console.error('Error en el proceso de login:', error);
+      throw error;
     }
-
-    const user = await response.json();
-    localStorage.setItem('pacomprarUser', JSON.stringify(user));
-    setCurrentUser(user);
-    return user;
   };
 
   const logout = async () => {
@@ -68,7 +94,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Add getUserProfile function
   const getUserProfile = async () => {
     try {
       setError(null);
@@ -99,7 +124,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
   
-  // Add updateUserProfile function
   const updateUserProfile = async (userData) => {
     try {
       setError(null);

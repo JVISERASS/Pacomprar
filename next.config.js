@@ -1,11 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // Desactivamos la optimización de imágenes completamente
-    // Esto permite cualquier URL de imagen sin validación
     unoptimized: true,
     
-    // Mantenemos la lista de dominios solo por referencia
     domains: [
       'pacomprarserver.onrender.com',
       'cdn.example.com',

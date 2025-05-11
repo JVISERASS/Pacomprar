@@ -6,14 +6,12 @@ import styles from './styles.module.css';
 import AuctionItem from '../../components/AuctionItem/AuctionItem';
 import { useAuthFetch } from '../../hooks/useAuthFetch';
 
-// Define constant directly here to avoid external file dependency
 const API_BASE_URL = 'https://pacomprarserver.onrender.com/api';
 
 export default function SubastasContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  // Initialize filters from URL parameters
   const [filters, setFilters] = useState({
     categoria: searchParams.get('categoria') || '',
     precio_min: searchParams.get('precio_min') || '',
@@ -24,13 +22,10 @@ export default function SubastasContent() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Add state for categories
   const [categories, setCategories] = useState([]);
 
-  // Get authFetch hook
   const { authFetch, loading: fetchLoading, error: fetchError } = useAuthFetch();
   
-  // Fetch categories when component mounts
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -42,7 +37,6 @@ export default function SubastasContent() {
         setCategories(data);
       } catch (err) {
         console.error('Error fetching categories:', err);
-        // Use empty array if there's an error, so the app still works
         setCategories([]);
       }
     };
@@ -50,7 +44,6 @@ export default function SubastasContent() {
     fetchCategories();
   }, []);
   
-  // Image URL sanitizer function
   const getSafeImageUrl = (imageUrl) => {
     if (!imageUrl) return '/images/default-auction.jpg';
     if (imageUrl.startsWith('/')) return imageUrl;
@@ -73,7 +66,6 @@ export default function SubastasContent() {
     }
   };
 
-  // Update URL with current filters
   const updateUrlWithFilters = (currentFilters) => {
     const params = new URLSearchParams();
     
@@ -86,7 +78,6 @@ export default function SubastasContent() {
     router.replace(`/subastas${newUrl}`, { shallow: true });
   };
 
-  // Handle filter changes
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     if ((name === 'precio_min' || name === 'precio_max') && value !== '') {
@@ -95,18 +86,15 @@ export default function SubastasContent() {
       }
     }
     
-    // Update the filters state
     const updatedFilters = {
       ...filters,
       [name]: value
     };
     
     setFilters(updatedFilters);
-    // Update URL to reflect new filters
     updateUrlWithFilters(updatedFilters);
   };
 
-  // Reset filters completely
   const resetFilters = () => {
     const emptyFilters = {
       categoria: '',
@@ -116,11 +104,9 @@ export default function SubastasContent() {
     };
     
     setFilters(emptyFilters);
-    // Clear URL params when filters are reset
     router.replace('/subastas', { shallow: true });
   };
 
-  // Fetch auctions with filtering using authFetch
   useEffect(() => {
     const fetchAuctions = async () => {
       try {
@@ -128,7 +114,6 @@ export default function SubastasContent() {
         
         const queryParams = new URLSearchParams();
         
-        // Only add non-empty filter values
         if (filters.categoria) queryParams.append('categoria', filters.categoria);
         if (filters.precio_min && !isNaN(filters.precio_min) && Number(filters.precio_min) >= 0) {
           queryParams.append('precio_min', filters.precio_min);
@@ -144,7 +129,6 @@ export default function SubastasContent() {
         const data = await authFetch(url, { method: 'GET' });
         console.log("Datos de subastas recibidos:", data);
         
-        // Map API response fields to the format expected by AuctionItem
         const mappedAuctions = (data || []).map(auction => {
           return {
             id: auction.id,
@@ -173,7 +157,6 @@ export default function SubastasContent() {
     fetchAuctions();
   }, [filters, authFetch]);
 
-  // Effect to handle URL search parameter changes
   useEffect(() => {
     const search = searchParams.get('search');
     if (search && search !== filters.search) {

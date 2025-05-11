@@ -15,7 +15,6 @@ export function useAuthFetch() {
     setError(null);
     
     try {
-      // Get token directly from currentUser instead of using getAccessToken
       if (!currentUser || !currentUser.access) {
         throw new Error('No hay sesión activa');
       }
@@ -37,7 +36,6 @@ export function useAuthFetch() {
         throw new Error('Sesión expirada');
       }
       
-      // Check if response is okay
       if (!response.ok) {
         let errorMessage;
         try {
@@ -51,7 +49,6 @@ export function useAuthFetch() {
         throw new Error(errorMessage);
       }
       
-      // Parse JSON if needed
       if (options.parseJson !== false) {
         try {
           const data = await response.json();
@@ -60,7 +57,7 @@ export function useAuthFetch() {
         } catch (e) {
           console.warn('Error al procesar respuesta JSON:', e);
           setLoading(false);
-          return {}; // Return empty object if JSON parsing fails
+          return {}; 
         }
       }
       

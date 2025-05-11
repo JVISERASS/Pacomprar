@@ -6,6 +6,8 @@ import Image from 'next/image';
 import styles from './styles.module.css';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAuthFetch } from '../../../hooks/useAuthFetch';
+import StarRating from '../../../components/StarRating/StarRating';
+import CommentSection from '../../../components/Comments/Comments';
 
 const AuctionDetailPage = () => {
   const params = useParams();
@@ -17,9 +19,19 @@ const AuctionDetailPage = () => {
   const [bidAmount, setBidAmount] = useState('');
   const { currentUser } = useAuth();
   const { authFetch, loading: fetchLoading } = useAuthFetch();
-  
+
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [highestBid, setHighestBid] = useState(0);
+
+  const [userRating, setUserRating] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [idRating, setIdRating] = useState(null);
+
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState(null);
 
   const formatPrice = (price) => {
     if (price === undefined || price === null || isNaN(price)) {
@@ -31,25 +43,47 @@ const AuctionDetailPage = () => {
     }).format(price);
   };
 
-  const renderStars = (rating) => {
-    if (rating === undefined || rating === null) return '☆☆☆☆☆';
+  useEffect(() => {
+    if (!loading && !fetchLoading && auction) {
+      setIsInitialLoad(false);
+    }
+  }, [loading, fetchLoading, auction]);
+
+  const fetchComments = async () => {
+    if (!params.id) return;
+
+    try {
+      setCommentsLoading(true);
+      setCommentsError(null);
+
+      const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/comentarios/`);
+      console.log('Comentarios cargados:', response);
+
+      if (Array.isArray(response)) {
+        setComments(response);
+      } else if (response && response.results && Array.isArray(response.results)) {
+        setComments(response.results);
+      } else {
+        console.warn('Formato de respuesta inesperado para comentarios:', response);
+        setComments([]);
+      }
+    } catch (err) {
+      console.error('Error al cargar comentarios:', err);
+      setCommentsError('No se pudieron cargar los comentarios. Por favor, inténtelo de nuevo.');
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const handleCommentAdded = (newComment, updatedComments) => {
+    if (updatedComments) {
+      setComments(updatedComments);
+      return;
+    }
     
-    const ratingNum = typeof rating === 'number' ? rating : parseFloat(rating);
-    
-    if (isNaN(ratingNum)) return '☆☆☆☆☆';
-    
-    const fullStars = Math.floor(ratingNum);
-    const halfStar = ratingNum % 1 >= 0.5 ? 1 : 0;
-    const emptyStars = 5 - fullStars - halfStar;
-    
-    return (
-      <>
-        {'★'.repeat(fullStars)}
-        {halfStar ? '½' : ''}
-        {'☆'.repeat(emptyStars)}
-        <span className={styles.ratingValue}>({ratingNum.toFixed(1)})</span>
-      </>
-    );
+    if (newComment) {
+      setComments(prevComments => [newComment, ...prevComments]);
+    }
   };
 
   useEffect(() => {
@@ -65,21 +99,38 @@ const AuctionDetailPage = () => {
         const data = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`);
         console.log("Datos de la subasta:", data);
         setAuction(data);
-        
+        console.log("ratings:", data.ratings);
+
         setCurrentPrice(parseFloat(data.precio_actual) || parseFloat(data.precio_inicial) || 0);
-        
+
+        if (data.ratings && Array.isArray(data.ratings) && currentUser) {
+          console.log("Current user ID:", currentUser.id, "Type:", typeof currentUser.id);
+
+          const userExistingRating = data.ratings.find(
+            rating => String(rating.usuario) === String(currentUser.id)
+          );
+
+          console.log("userExistingRating:", userExistingRating);
+          if (userExistingRating) {
+            setUserRating(userExistingRating.valor);
+            setRatingSubmitted(true);
+            setIdRating(userExistingRating.id);
+            console.log("Usuario ya ha valorado esta subasta:", userExistingRating);
+          }
+        }
+
         if (data.pujas && Array.isArray(data.pujas)) {
           setBidsHistory(data.pujas);
-          
+
           if (data.pujas.length > 0) {
             const highestBidItem = data.pujas.reduce(
               (max, bid) => parseFloat(bid.cantidad) > parseFloat(max.cantidad) ? bid : max,
               data.pujas[0]
             );
-            
+
             const highestAmount = parseFloat(highestBidItem.cantidad);
             setHighestBid(highestAmount);
-            
+
             const minNextBid = (highestAmount * 1.05).toFixed(2);
             setBidAmount(minNextBid);
           } else {
@@ -88,6 +139,8 @@ const AuctionDetailPage = () => {
             setBidAmount(minNextBid);
           }
         }
+
+        fetchComments();
       } catch (err) {
         console.error('Error al cargar detalles de la subasta:', err);
         setError(err.message);
@@ -95,9 +148,9 @@ const AuctionDetailPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchAuctionDetails();
-  }, [params.id, authFetch]); 
+  }, [params.id, authFetch, currentUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,32 +158,32 @@ const AuctionDetailPage = () => {
       setError('ID de subasta no proporcionado');
       return;
     }
-  
+
     try {
       setLoading(true);
       setError(null);
-  
+
       const data = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/pujas/`, {
         method: 'POST',
         body: JSON.stringify({ cantidad: bidAmount }),
       });
-  
+
       console.log('Puja realizada con éxito:', data);
-      
+
       const newBidAmount = parseFloat(data.cantidad);
       setCurrentPrice(newBidAmount);
       setHighestBid(newBidAmount);
-      
+
       const minNextBid = (newBidAmount * 1.05).toFixed(2);
       setBidAmount(minNextBid);
-      
+
       const auctionData = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`);
       setAuction(auctionData);
-      
+
       if (auctionData.pujas && Array.isArray(auctionData.pujas)) {
         setBidsHistory(auctionData.pujas);
       }
-      
+
       alert(`¡Puja realizada con éxito! Tu puja: ${formatPrice(newBidAmount)}`);
     } catch (err) {
       console.error('Error al hacer puja:', err);
@@ -141,13 +194,55 @@ const AuctionDetailPage = () => {
     }
   }
 
+  const handleRatingSubmit = async () => {
+    if (!currentUser || userRating === 0) {
+      return;
+    }
+
+    try {
+      setRatingLoading(true);
+      setError(null);
+
+      if (!ratingSubmitted) {
+        const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/ratings/`, {
+          method: 'POST',
+          body: JSON.stringify({
+            valor: userRating,
+          }),
+        });
+        console.log('Nueva valoración enviada:', response);
+      } else {
+        const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/ratings/${idRating}/`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            valor: userRating,
+          }),
+        });
+        console.log('Valoración actualizada:', response);
+      }
+
+      setRatingSubmitted(true);
+
+      const updatedData = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`);
+      setAuction(updatedData);
+
+      alert('¡Gracias por tu valoración!');
+    } catch (err) {
+      console.error('Error al enviar valoración:', err);
+      setError('No se pudo enviar la valoración: ' + (err.message || 'Error desconocido'));
+      alert('Error al enviar la valoración: ' + (err.message || 'Error desconocido'));
+    } finally {
+      setRatingLoading(false);
+    }
+  };
+
   const formatDateTime = (dateString) => {
     if (!dateString) return 'Fecha no disponible';
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
-      year: 'numeric', 
-      month: 'long', 
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -192,12 +287,12 @@ const AuctionDetailPage = () => {
   const category = auction?.categoria_nombre || 'Sin categoría';
   const endDate = auction?.fecha_cierre || new Date().toISOString();
   const isAuctionEnded = new Date(endDate) < new Date();
-  
+
   const precio_actual = parseFloat(auction?.precio_actual) || parseFloat(auction?.precio_inicial) || 0;
   const numBids = bidsHistory.length || 0;
   const buyNowPrice = (precio_actual * 1.3).toFixed(2);
   const minBidAmount = (precio_actual * 1.05).toFixed(2);
-  
+
   const seller = auction?.usuario_nombre || 'Vendedor no disponible';
   const imageToShow = auction?.imagen || '/images/prod_img/default-product.jpg';
 
@@ -206,16 +301,16 @@ const AuctionDetailPage = () => {
       <button onClick={() => router.back()} className={styles.backButton}>
         ← Volver
       </button>
-      
+
       <div className={styles.auctionHeader}>
         <h1 className={styles.title}>{title}</h1>
-        
+
         <div className={styles.ratingDisplay}>
-          <span className={styles.stars}>{renderStars(auction?.valoracion)}</span>
+          <StarRating value={parseFloat(auction?.valoracion) || 0} />
         </div>
-        
+
         {isOwner && (
-          <button 
+          <button
             onClick={() => router.push(`/subastas/${params.id}/editar`)}
             className={styles.editButton}
           >
@@ -223,7 +318,7 @@ const AuctionDetailPage = () => {
           </button>
         )}
       </div>
-      
+
       <div className={styles.infoBar}>
         <div className={styles.category}>Categoría: <strong>{category}</strong></div>
         <div className={styles.timeRemaining}>
@@ -234,7 +329,7 @@ const AuctionDetailPage = () => {
           )}
         </div>
       </div>
-      
+
       <div className={styles.mainContent}>
         <div className={styles.leftCol}>
           <div className={styles.productImageContainer}>
@@ -253,14 +348,15 @@ const AuctionDetailPage = () => {
                 e.target.onerror = null;
                 e.target.src = '/images/prod_img/default-product.jpg';
               }}
+              priority={true}
             />
           </div>
-          
+
           <div className={styles.descriptionBox}>
             <h3 className={styles.sectionTitle}>Descripción</h3>
             <p>{description}</p>
           </div>
-          
+
           <div className={styles.sellerBox}>
             <h3 className={styles.sectionTitle}>Vendedor</h3>
             <div className={styles.sellerInfo}>
@@ -275,7 +371,7 @@ const AuctionDetailPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className={styles.bidsHistoryBox}>
             <h3 className={styles.sectionTitle}>Historial de Pujas</h3>
             {Array.isArray(bidsHistory) && bidsHistory.length > 0 ? (
@@ -301,29 +397,88 @@ const AuctionDetailPage = () => {
               <p className={styles.noBids}>No hay pujas realizadas aún.</p>
             )}
           </div>
+
+          <div className={styles.ratingBox}>
+            <h3 className={styles.sectionTitle}>Valora este producto</h3>
+
+            {!currentUser ? (
+              <p className={styles.loginRequired}>
+                <a href="/login">Inicia sesión</a> para valorar este producto
+              </p>
+            ) : ratingSubmitted ? (
+              <div className={styles.ratingSuccess}>
+                <p>Tu valoracion actual:</p>
+                <div className={styles.ratingDisplay}>
+                  <StarRating
+                    value={userRating}
+                    readOnly={false}
+                    onChange={(e, newValue) => {
+                      setUserRating(newValue);
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={handleRatingSubmit}
+                  disabled={ratingLoading}
+                  className={styles.ratingButton}
+                >
+                  {ratingLoading ? 'Actualizando...' : 'Actualizar valoración'}
+                </button>
+              </div>
+            ) : (
+              <div className={styles.ratingForm}>
+                <StarRating
+                  value={userRating}
+                  onChange={(e, newValue) => {
+                    setUserRating(newValue);
+                  }}
+                  readOnly={ratingLoading}
+                />
+                <button
+                  onClick={handleRatingSubmit}
+                  disabled={!userRating || ratingLoading}
+                  className={styles.ratingButton}
+                >
+                  {ratingLoading ? 'Enviando...' : 'Enviar Valoración'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.commentsSection}>
+            <CommentSection
+              auctionId={params.id}
+              currentUser={currentUser}
+              authFetch={authFetch}
+              comments={comments}
+              commentsLoading={commentsLoading}
+              commentsError={commentsError}
+              onCommentAdded={handleCommentAdded}
+            />
+          </div>
         </div>
-        
+
         <div className={styles.rightCol}>
           <div className={styles.bidBox}>
             <h3 className={styles.sectionTitle}>Información de puja</h3>
-            
+
             <div className={styles.priceInfo}>
               <p className={styles.priceRow}>
                 <span className={styles.priceLabel}>Precio actual:</span>
                 <span className={styles.priceValue}>{formatPrice(precio_actual)}</span>
               </p>
-              
+
               <p className={styles.priceRow}>
                 <span className={styles.priceLabel}>Pujas realizadas:</span>
                 <span className={styles.bidCount}>{numBids}</span>
               </p>
-              
+
               <p className={styles.priceRow}>
                 <span className={styles.priceLabel}>Comprar ahora:</span>
                 <span className={styles.buyNowPrice}>{formatPrice(buyNowPrice)}</span>
               </p>
             </div>
-            
+
             {!isAuctionEnded && !isOwner ? (
               <form onSubmit={handleSubmit} className={styles.bidForm}>
                 <div className={styles.inputGroup}>
@@ -343,16 +498,16 @@ const AuctionDetailPage = () => {
                     La puja mínima es de {formatPrice(minBidAmount)}
                   </small>
                 </div>
-                
-                <button 
-                  type="submit" 
+
+                <button
+                  type="submit"
                   className={styles.bidButton}
                   disabled={loading || !currentUser}
                 >
                   {loading ? 'Procesando...' : 'Realizar Puja'}
                 </button>
-                
-                <button 
+
+                <button
                   type="button"
                   className={styles.buyNowButton}
                   disabled={loading || !currentUser}
@@ -372,7 +527,7 @@ const AuctionDetailPage = () => {
                 >
                   Comprar Ahora por {formatPrice(buyNowPrice)}
                 </button>
-                
+
                 {!currentUser && (
                   <p className={styles.loginRequired}>
                     <a href="/login">Inicia sesión</a> para participar en esta subasta

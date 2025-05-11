@@ -8,7 +8,6 @@ import styles from './styles.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaSearch } from 'react-icons/fa';
 
-// Separate component for search functionality to be wrapped in Suspense
 function SearchComponent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -21,7 +20,6 @@ function SearchComponent() {
     return '';
   });
 
-  // Update search term when URL changes
   useEffect(() => {
     if (pathname === '/subastas') {
       const urlSearchTerm = searchParams.get('search') || '';
@@ -33,10 +31,8 @@ function SearchComponent() {
     e.preventDefault();
     
     if (searchTerm.trim()) {
-      // Navigate to subastas page with search parameter
       router.push(`/subastas?search=${encodeURIComponent(searchTerm.trim())}`);
     } else if (pathname === '/subastas') {
-      // If on subastas page and search is cleared, remove the search param
       const currentParams = new URLSearchParams(searchParams.toString());
       currentParams.delete('search');
       const newQuery = currentParams.toString() ? `?${currentParams.toString()}` : '';
@@ -61,7 +57,6 @@ function SearchComponent() {
   );
 }
 
-// Fallback component for search while suspended
 function SearchFallback() {
   return (
     <form className={styles.searchForm}>
@@ -96,7 +91,6 @@ const Navbar = () => {
 
   return (
     <header className={styles.header}>
-      {/* Parte superior del header con logo y buscador */}
       <div className={styles.topHeader}>
         <div className={styles.logoContainer}>
           <Link href="/" className={styles.logoLink}>
@@ -122,7 +116,6 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* Navegación principal */}
       <nav className={`${styles.navbar} ${mobileMenuOpen ? styles.mobileOpen : ''}`}>
         <div className={styles.navLinks}>
           <Link href="/" className={pathname === '/' ? styles.activeLink : styles.navLink}>
