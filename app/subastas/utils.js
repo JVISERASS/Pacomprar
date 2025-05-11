@@ -1,4 +1,3 @@
-// Datos de ejemplo para las subastas
 const mockAuctions = [
   {
     id: '1',
@@ -9,7 +8,7 @@ const mockAuctions = [
     bids: 12,
     seller: 'tecnoventas',
     category: 'electronica',
-    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() // 3 días desde ahora
+    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '2',
@@ -20,7 +19,7 @@ const mockAuctions = [
     bids: 5,
     seller: 'homefurnish',
     category: 'hogar',
-    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString() // 5 días desde ahora
+    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '3',
@@ -31,7 +30,7 @@ const mockAuctions = [
     bids: 8,
     seller: 'sportgear',
     category: 'moda',
-    endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 días desde ahora
+    endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '4',
@@ -42,7 +41,7 @@ const mockAuctions = [
     bids: 3,
     seller: 'cycleworld',
     category: 'deportes',
-    endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString() // 4 días desde ahora
+    endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '5',
@@ -53,7 +52,7 @@ const mockAuctions = [
     bids: 15,
     seller: 'applefan',
     category: 'electronica',
-    endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString() // 1 día desde ahora
+    endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '6',
@@ -64,7 +63,7 @@ const mockAuctions = [
     bids: 6,
     seller: 'kitchenstore',
     category: 'hogar',
-    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() // 3 días desde ahora
+    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '7',
@@ -75,7 +74,7 @@ const mockAuctions = [
     bids: 4,
     seller: 'fashionshop',
     category: 'moda',
-    endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 días desde ahora
+    endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: '8',
@@ -86,25 +85,19 @@ const mockAuctions = [
     bids: 10,
     seller: 'fitnessgear',
     category: 'deportes',
-    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString() // 5 días desde ahora
+    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 
-// Función para obtener todas las subastas
 export const fetchAuctions = async () => {
-  // En un caso real, esto sería una llamada a la API
-  // Por ahora, devolvemos los datos de ejemplo
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockAuctions);
-    }, 800); // Simular un delay de red
+    }, 800);
   });
 };
 
-// Función para obtener una subasta por ID
 export const fetchAuctionById = async (id) => {
-  // En un caso real, esto sería una llamada a la API
-  // Por ahora, buscamos en los datos de ejemplo
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       const auction = mockAuctions.find(auction => auction.id === id);
@@ -114,14 +107,11 @@ export const fetchAuctionById = async (id) => {
       } else {
         reject(new Error('Subasta no encontrada'));
       }
-    }, 600); // Simular un delay de red
+    }, 600);
   });
 };
 
-// Función para hacer una puja
 export const placeBid = async (auctionId, amount, userId) => {
-  // En un caso real, esto sería una llamada a la API
-  // Por ahora, simulamos una respuesta exitosa
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -129,7 +119,7 @@ export const placeBid = async (auctionId, amount, userId) => {
         message: 'Puja realizada con éxito',
         newBid: amount
       });
-    }, 1000); // Simular un delay de red
+    }, 1000);
   });
 };
 

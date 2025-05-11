@@ -16,7 +16,6 @@ class AuthService {
 
       const data = await response.json();
       
-      // Save tokens and user in localStorage
       localStorage.setItem('user', JSON.stringify({
         id: this.parseJwt(data.access).user_id,
         username: data.username,
@@ -41,8 +40,6 @@ class AuthService {
         body: JSON.stringify({ refresh: user.refresh })
       }).catch(error => console.error('Error en logout:', error));
     }
-    // If backend fails to log out, we still clear localStorage
-    // to ensure user is logged out on frontend
     localStorage.removeItem('user');
   }
 
@@ -97,7 +94,6 @@ class AuthService {
 
       const data = await response.json();
       
-      // Update access token in localStorage
       const updatedUser = { ...user, access: data.access };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       

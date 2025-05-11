@@ -17,10 +17,8 @@ export default function AuctionItem({ auction }) {
     );
   }
   
-  // URL para ver detalle de la subasta
   const auctionUrl = `/subastas/${auction.id}`;
   
-  // Asegurarse de que todos los valores existan
   const safeAuction = {
     id: auction.id || 'unknown',
     title: auction.title || 'Producto sin nombre',
@@ -32,12 +30,10 @@ export default function AuctionItem({ auction }) {
     endDate: auction.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   };
   
-  // Determinar la imagen a mostrar, teniendo en cuenta el estado de error
   const imageToShow = imageError ? 
     '/images/default-auction.jpg' : 
     (auction.imageUrl || '/images/default-auction.jpg');
   
-  // Formateo de precio
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -45,7 +41,6 @@ export default function AuctionItem({ auction }) {
     }).format(price);
   };
   
-  // Calcular tiempo restante
   const getTimeRemaining = (endDate) => {
     const total = new Date(endDate) - new Date();
     const days = Math.floor(total / (1000 * 60 * 60 * 24));
