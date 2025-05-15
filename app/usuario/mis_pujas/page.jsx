@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthFetch } from '../../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../../config/apiConfig';
 import Link from 'next/link';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import EditBidModal from '../../../components/EditBidModal/EditBidModal';
@@ -25,7 +26,7 @@ export default function MisPujasPage() {
       setLoading(true);
       setError(null);
       
-      const data = await authFetch('https://pacomprarserver.onrender.com/api/misPujas/');
+      const data = await authFetch(API_ROUTES.MY_BIDS);
       
       // Sort bids from newest to oldest
       const ordenadas = data.sort((a, b) => 
@@ -54,7 +55,7 @@ export default function MisPujasPage() {
       // Get auction details in parallel
       await Promise.all(uniqueAuctionIds.map(async (auctionId) => {
         try {
-          const auctionData = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${auctionId}/`);
+          const auctionData = await authFetch(API_ROUTES.AUCTION_BY_ID(auctionId));
           details[auctionId] = auctionData;
         } catch (error) {
           console.error(`Error al obtener detalles de la subasta ${auctionId}:`, error);
@@ -136,7 +137,7 @@ export default function MisPujasPage() {
   // Function to update a bid
   const handleUpdate = async (newAmount) => {
     try {
-      await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${selectedBid.subasta}/pujas/${selectedBid.id}/`, {
+      await authFetch(API_ROUTES.BID_BY_ID(selectedBid.subasta, selectedBid.id), {
         method: 'PUT',
         body: JSON.stringify({ cantidad: newAmount }),
       });
@@ -161,7 +162,7 @@ export default function MisPujasPage() {
     }
 
     try {
-      await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${bid.subasta}/pujas/${bid.id}/`, {
+      await authFetch(API_ROUTES.BID_BY_ID(bid.subasta, bid.id), {
         method: 'DELETE',
       });
       

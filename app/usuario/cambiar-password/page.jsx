@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthFetch } from '../../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../../config/apiConfig';
 import styles from './styles.module.css';
 
 export default function ChangePasswordPage() {
@@ -58,7 +59,7 @@ export default function ChangePasswordPage() {
       setError('');
       setSuccess('');
       
-      await authFetch('https://pacomprarserver.onrender.com/api/usuarios/change-password/', {
+      await authFetch(API_ROUTES.CHANGE_PASSWORD, {
         method: 'POST',
         body: JSON.stringify(passwordData)
       });

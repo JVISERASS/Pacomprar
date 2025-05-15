@@ -1,4 +1,6 @@
-import { useState } from "react";
+'use client';
+
+import React, { useState, useRef } from 'react';
 import { 
   Box, 
   Typography, 
@@ -28,6 +30,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import styles from './styles.module.css';
+import { API_ROUTES } from '../../config/apiConfig';
 
 const CommentSection = ({ auctionId, currentUser, authFetch, comments = [], isLoading, onCommentAdded }) => {
   const [newComment, setNewComment] = useState({ titulo: '', texto: '' });
@@ -70,7 +73,7 @@ const CommentSection = ({ auctionId, currentUser, authFetch, comments = [], isLo
       setIsSubmitting(true);
       setError(null);
       
-      const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${auctionId}/comentarios/`, {
+      const response = await authFetch(API_ROUTES.AUCTION_COMMENTS(auctionId), {
         method: "POST", 
         body: JSON.stringify({
           titulo: newComment.titulo,
@@ -114,7 +117,7 @@ const CommentSection = ({ auctionId, currentUser, authFetch, comments = [], isLo
       setIsSavingEdit(true);
       setError(null);
       
-      const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${auctionId}/comentarios/${editingComment.id}/`, {
+      const response = await authFetch(API_ROUTES.COMMENT_BY_ID(auctionId, editingComment.id), {
         method: "PUT", 
         body: JSON.stringify({
           titulo: editedComment.titulo,
@@ -158,7 +161,7 @@ const CommentSection = ({ auctionId, currentUser, authFetch, comments = [], isLo
       setIsDeleting(true);
       setError(null);
       
-      await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${auctionId}/comentarios/${deletingCommentId}/`, {
+      await authFetch(API_ROUTES.COMMENT_BY_ID(auctionId, deletingCommentId), {
         method: "DELETE"
       });
       

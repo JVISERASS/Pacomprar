@@ -1,9 +1,9 @@
-const API_URL = "https://pacomprarserver.onrender.com/api";
+import { API_BASE_URL, API_ROUTES } from "../config/apiConfig";
 
 class AuthService {
   async login(username, password) {
     try {
-      const response = await fetch(`${API_URL}/token/`, {
+      const response = await fetch(API_ROUTES.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -34,7 +34,7 @@ class AuthService {
     const user = this.getCurrentUser();
     
     if (user && user.refresh) {
-      fetch(`${API_URL}/usuarios/log-out/`, {
+      fetch(API_ROUTES.LOGOUT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: user.refresh })
@@ -44,7 +44,7 @@ class AuthService {
   }
 
   async register(userData) {
-    const response = await fetch(`${API_URL}/usuarios/registro/`, {
+    const response = await fetch(API_ROUTES.REGISTER, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
@@ -81,7 +81,7 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${API_URL}/token/refresh/`, {
+      const response = await fetch(API_ROUTES.REFRESH_TOKEN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: user.refresh })

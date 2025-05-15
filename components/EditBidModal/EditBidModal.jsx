@@ -3,35 +3,52 @@
 import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
 
+/**
+ * Modal para editar una puja existente
+ * Permite al usuario incrementar el monto de su puja anterior
+ * 
+ * @param {Object} props - Propiedades del componente
+ * @param {Object} props.bid - Datos de la puja a editar
+ * @param {Object} props.auctionDetail - Detalles de la subasta
+ * @param {Function} props.onClose - Función para cerrar el modal
+ * @param {Function} props.onUpdate - Función para actualizar la puja
+ */
 export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) {
+  // Estado para el nuevo monto de la puja
   const [newAmount, setNewAmount] = useState('');
+  // Estado para mensajes de error
   const [error, setError] = useState('');
+  // Estado para indicar proceso de envío
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with current bid amount
+  // Inicializar el formulario con el monto actual de la puja
   useEffect(() => {
     if (bid) {
       setNewAmount(bid.cantidad.toString());
     }
   }, [bid]);
 
+  /**
+   * Maneja el envío del formulario para actualizar la puja
+   * @param {Object} e - Evento de formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Basic validation
+    // 1. Validación básica del monto
     if (!newAmount || isNaN(newAmount) || parseFloat(newAmount) <= 0) {
       setError('Por favor, introduce una cantidad válida.');
       return;
     }
 
-    // New amount must be higher than current
+    // 2. El nuevo monto debe ser mayor que el actual
     if (parseFloat(newAmount) <= parseFloat(bid.cantidad)) {
       setError('La nueva puja debe ser superior a la actual.');
       return;
     }
 
-    // If we have auction details, validate against current price
+    // 3. Si tenemos detalles de la subasta, validar contra el precio actual
     if (auctionDetail && auctionDetail.precio_actual) {
       const minimumAmount = parseFloat(auctionDetail.precio_actual) * 1.05;
       if (parseFloat(newAmount) < minimumAmount) {
@@ -40,10 +57,11 @@ export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) 
       }
     }
 
+    // 4. Enviar la actualización
     try {
       setIsSubmitting(true);
       await onUpdate(parseFloat(newAmount));
-      onClose();
+      onClose(); // Cerrar modal tras éxito
     } catch (err) {
       setError(err.message || 'Error al actualizar la puja.');
     } finally {
@@ -51,6 +69,11 @@ export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) 
     }
   };
 
+  /**
+   * Formatea un precio en formato de moneda EUR
+   * @param {number} price - Precio a formatear
+   * @returns {string} - Precio formateado (ej: "100,00 €")
+   */
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -58,19 +81,22 @@ export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) 
     }).format(price);
   };
 
-  // If no bid selected, don't show modal
+  // Si no hay puja seleccionada, no mostrar modal
   if (!bid) return null;
 
-  // Get auction title from details if available
+  // Obtener título de la subasta de los detalles si están disponibles
   const auctionTitle = auctionDetail ? auctionDetail.titulo : `Subasta #${bid.subasta}`;
-  // Get current auction price
+  
+  // Obtener precio actual de la subasta
   const currentAuctionPrice = auctionDetail ? auctionDetail.precio_actual : parseFloat(bid.cantidad);
-  // Calculate minimum amount for next bid (5% more than current price)
+  
+  // Calcular monto mínimo para la siguiente puja (5% más que el precio actual)
   const minimumBidAmount = currentAuctionPrice * 1.05;
 
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
+        {/* Cabecera del modal */}
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>Editar Puja</h2>
           <button 
@@ -82,12 +108,15 @@ export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) 
           </button>
         </div>
         
+        {/* Contenido del modal */}
         <div className={styles.modalBody}>
+          {/* Información de la subasta */}
           <p>
             Estás editando tu puja para: 
             <strong>{auctionTitle}</strong>
           </p>
           
+          {/* Información de pujas */}
           <div className={styles.bidInfo}>
             <p className={styles.currentBid}>
               <span className={styles.bidLabel}>Tu puja actual:</span>
@@ -102,8 +131,10 @@ export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) 
             )}
           </div>
           
+          {/* Mensajes de error */}
           {error && <div className={styles.errorMessage}>{error}</div>}
           
+          {/* Formulario de edición */}
           <form onSubmit={handleSubmit} className={styles.editForm}>
             <div className={styles.formGroup}>
               <label htmlFor="newAmount">Nueva cantidad (€):</label>
@@ -123,6 +154,7 @@ export default function EditBidModal({ bid, auctionDetail, onClose, onUpdate }) 
               </small>
             </div>
             
+            {/* Botones de acción */}
             <div className={styles.formActions}>
               <button
                 type="button"

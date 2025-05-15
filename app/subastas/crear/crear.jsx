@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from './styles.module.css'; 
 import { useAuthFetch } from '../../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../../config/apiConfig';
 
 export default function CreateAuctionPage() {
     const [formData, setFormData] = useState({
@@ -46,19 +47,34 @@ export default function CreateAuctionPage() {
     useEffect(() => {
       const fetchCategories = async () => {
         try {
-          const response = await fetch('https://pacomprarserver.onrender.com/api/subastas/categorias/');
+          const response = await fetch(API_ROUTES.AUCTION_CATEGORIES);
           const data = await response.json();
           
           // Check the structure of received data
           console.log("Datos de categorías recibidos:", data);
           
-          // Extract the results array and map to expected format
-          const processedCategories = data.results ? data.results.map(cat => ({
-            id: cat.id,
-            name: cat.nombre // Map "nombre" to "name"
-          })) : [];
+          // Handle both array response and object with results property
+          let processedCategories = [];
+          
+          if (Array.isArray(data)) {
+            // Data is directly an array
+            processedCategories = data.map(cat => ({
+              id: cat.id,
+              name: cat.nombre // Map "nombre" to "name"
+            }));
+          } else if (data && data.results && Array.isArray(data.results)) {
+            // Data is an object with results property
+            processedCategories = data.results.map(cat => ({
+              id: cat.id,
+              name: cat.nombre
+            }));
+          }
           
           setCategories(processedCategories);
+          
+          if (processedCategories.length === 0) {
+            console.warn('No se encontraron categorías o formato inesperado.');
+          }
         } catch (error) {
           console.error('Error al obtener categorías:', error);
           // In case of error, provide some default categories
@@ -125,7 +141,7 @@ export default function CreateAuctionPage() {
         setLoading(true);
         setError('');
         
-        const response = await authFetch('https://pacomprarserver.onrender.com/api/subastas/', {
+        const response = await authFetch(API_ROUTES.AUCTIONS, {
           method: 'POST',
           body: JSON.stringify(auctionData),
         });
