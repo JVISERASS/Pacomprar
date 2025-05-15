@@ -4,7 +4,7 @@
  */
 
 // URL base para todas las llamadas a la API - Cambiar esto para usar otro backend
-export const API_BASE_URL = 'https://pacomprarserver.onrender.com/api';
+export const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 /**
  * Construye una URL completa para la API
