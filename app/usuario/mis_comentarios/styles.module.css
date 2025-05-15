@@ -1,0 +1,227 @@
+.misComentariosContainer {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.5rem;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.reloadButton {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.reloadButton:hover {
+  background-color: #b71c1c;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.browseLink {
+  display: inline-block;
+  margin-top: 1rem;
+  background-color: #2196f3;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.browseLink:hover {
+  background-color: #1976d2;
+}
+
+.comentariosTable {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  background-color: #f5f5f5;
+  padding: 1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  align-items: center;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #f9f9f9;
+}
+
+.headerCell, .cell {
+  padding: 0.5rem;
+}
+
+.cell {
+  word-break: break-word;
+}
+
+.comentarioContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.comentarioTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.comentarioText {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.subastaLink {
+  color: #2196f3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.subastaLink:hover {
+  text-decoration: underline;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  background-color: #2196f3;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: inline-block;
+}
+
+.actionButton:hover {
+  background-color: #1976d2;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.editButton {
+  color: #ff9800;
+}
+
+.editButton:hover {
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.deleteButton {
+  color: #f44336;
+}
+
+.deleteButton:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+@media (max-width: 768px) {
+  .tableHeader, .tableRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .headerCell {
+    display: none;
+  }
+  
+  .cell {
+    padding: 0.25rem;
+  }
+  
+  .tableRow {
+    padding: 1rem;
+    border-bottom: 8px solid #f0f0f0;
+  }
+  
+  .actionButtons {
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+  }
+}

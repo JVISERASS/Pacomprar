@@ -138,9 +138,11 @@ const Navbar = () => {
                   </Link>
                   <Link href="/usuario" className={styles.dropdownItem}>
                     Editar Perfil
-                  </Link>
-                  <Link href="/usuario/mis_pujas" className={styles.dropdownItem}>
+                  </Link>                  <Link href="/usuario/mis_pujas" className={styles.dropdownItem}>
                     Mis Pujas
+                  </Link>
+                  <Link href="/usuario/mis_comentarios" className={styles.dropdownItem}>
+                    Mis Comentarios
                   </Link>
                   <Link href="/subastas/mis_subastas" className={styles.dropdownItem}>
                     Mis Subastas

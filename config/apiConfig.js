@@ -37,10 +37,10 @@ export const API_ROUTES = {
   MY_BIDS: getApiUrl('misPujas/'),
   AUCTION_BIDS: (auctionId) => getApiUrl(`subastas/${auctionId}/pujas/`),
   BID_BY_ID: (auctionId, bidId) => getApiUrl(`subastas/${auctionId}/pujas/${bidId}/`),
-  
-  // Comentarios
+    // Comentarios
   AUCTION_COMMENTS: (auctionId) => getApiUrl(`subastas/${auctionId}/comentarios/`),
   COMMENT_BY_ID: (auctionId, commentId) => getApiUrl(`subastas/${auctionId}/comentarios/${commentId}/`),
+  MY_COMMENTS: getApiUrl('misComentarios/'),
   
   // Valoraciones
   AUCTION_RATINGS: (auctionId) => getApiUrl(`subastas/${auctionId}/ratings/`),
