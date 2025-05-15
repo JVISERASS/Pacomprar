@@ -15,13 +15,15 @@ export default function SubastasContent() {
   // Hooks para gestionar navegación y parámetros de URL
   const searchParams = useSearchParams();
   const router = useRouter();
-  
   // Estado para los filtros de búsqueda (inicializados desde URL)
   const [filters, setFilters] = useState({
     categoria: searchParams.get('categoria') || '',
     precio_min: searchParams.get('precio_min') || '',
+    rating_min: searchParams.get('rating_min') || '',
     precio_max: searchParams.get('precio_max') || '',
-    search: searchParams.get('search') || ''
+    estado: searchParams.get('estado') || '', // Filtro de estado (abierta/cerrada)
+    username: searchParams.get('username') || '', // Filtro por nombre de usuario
+    search: searchParams.get('search') || '' // Filtro de búsqueda general
   });
   
   // Estados para subastas, categorías y manejo de carga/errores
@@ -104,11 +106,13 @@ export default function SubastasContent() {
    */
   const updateUrlWithFilters = (currentFilters) => {
     const params = new URLSearchParams();
-    
-    // Añadir solo los filtros con valor
+      // Añadir solo los filtros con valor
     if (currentFilters.categoria) params.append('categoria', currentFilters.categoria);
     if (currentFilters.precio_min) params.append('precio_min', currentFilters.precio_min);
+    if (currentFilters.rating_min) params.append('rating_min', currentFilters.rating_min);
     if (currentFilters.precio_max) params.append('precio_max', currentFilters.precio_max);
+    if (currentFilters.estado) params.append('estado', currentFilters.estado);
+     if (currentFilters.username) params.append('username', currentFilters.username); // Añadimos estado a la URL
     if (currentFilters.search) params.append('search', currentFilters.search);
     
     // Actualizar URL del navegador sin recargar página
@@ -142,11 +146,13 @@ export default function SubastasContent() {
   /**
    * Restablece todos los filtros a sus valores por defecto
    */
-  const resetFilters = () => {
-    const emptyFilters = {
+  const resetFilters = () => {    const emptyFilters = {
       categoria: '',
       precio_min: '',
+      rating_min: '',
       precio_max: '',
+      estado: '', // Añadimos para limpiar también el filtro de estado
+      username: '',
       search: ''
     };
     
@@ -169,9 +175,13 @@ export default function SubastasContent() {
         if (filters.precio_min && !isNaN(filters.precio_min) && Number(filters.precio_min) >= 0) {
           queryParams.append('precio_min', filters.precio_min);
         }
-        if (filters.precio_max && !isNaN(filters.precio_max) && Number(filters.precio_max) >= 0) {
+        if (filters.rating_min && !isNaN(filters.rating_min) && Number(filters.rating_min) >= 0) {
+          queryParams.append('rating_min', filters.rating_min);
+        }        if (filters.precio_max && !isNaN(filters.precio_max) && Number(filters.precio_max) >= 0) {
           queryParams.append('precio_max', filters.precio_max);
         }
+        if (filters.estado) queryParams.append('estado', filters.estado);
+        if (filters.username) queryParams.append('username', filters.username); // Añadimos el estado a la petición
         if (filters.search) queryParams.append('search', filters.search);
         
         // Construir URL completa
@@ -209,16 +219,25 @@ export default function SubastasContent() {
     
     fetchAuctions();
   }, [filters, authFetch]);
-
   /**
    * Sincroniza los filtros con los parámetros de la URL cuando cambian externamente
    */
   useEffect(() => {
+    // Verificar si el parámetro search cambió
     const search = searchParams.get('search');
     if (search && search !== filters.search) {
       setFilters(prev => ({
         ...prev,
         search: search
+      }));
+    }
+    
+    // Verificar si el parámetro username cambió
+    const username = searchParams.get('username');
+    if (username && username !== filters.username) {
+      setFilters(prev => ({
+        ...prev,
+        username: username
       }));
     }
   }, [searchParams]);
@@ -234,8 +253,15 @@ export default function SubastasContent() {
           value={filters.search}
           onChange={handleFilterChange}
           className={styles.searchInput}
-        />
-        <select 
+        /> 
+        <input
+          type="text"
+          placeholder="Buscar por nombre de usuario"
+          name="username"
+          value={filters.username}
+          onChange={handleFilterChange}
+          className={styles.searchInput}
+        />        <select 
           name="categoria" 
           value={filters.categoria} 
           onChange={handleFilterChange}
@@ -248,7 +274,29 @@ export default function SubastasContent() {
             </option>
           ))}
         </select>
+        
+        {/* Selector de estado de subastas */}
+        <select 
+          name="estado" 
+          value={filters.estado} 
+          onChange={handleFilterChange}
+          className={styles.filterSelect}
+        >
+          <option value="">Todos los estados</option>
+          <option value="abierta">Subastas abiertas</option>
+          <option value="cerrada">Subastas cerradas</option>
+        </select>
+        
         <div className={styles.priceFilters}>
+          <input
+            type="number"
+            min="0"
+            placeholder="Rating mínimo"
+            name="rating_min"
+            value={filters.rating_min}
+            onChange={handleFilterChange}
+            className={styles.priceInput}
+          />
           <input
             type="number"
             min="0"
@@ -267,11 +315,10 @@ export default function SubastasContent() {
             onChange={handleFilterChange}
             className={styles.priceInput}
           />
-        </div>
-        <button 
+        </div>        <button 
           onClick={resetFilters} 
           className={styles.resetButton}
-          disabled={!filters.categoria && !filters.precio_min && !filters.precio_max && !filters.search}
+          disabled={!filters.categoria && !filters.precio_min && !filters.precio_max && !filters.search && !filters.rating_min && !filters.estado && !filters.username}
         >
           Limpiar filtros
         </button>

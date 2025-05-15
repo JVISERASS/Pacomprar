@@ -336,8 +336,7 @@ const CommentSection = ({ auctionId, currentUser, authFetch, comments = [], isLo
                         <Avatar className={styles.userAvatar}>
                           {comment.usuario_nombre?.charAt(0).toUpperCase() || '?'}
                         </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText 
+                      </ListItemAvatar>                      <ListItemText 
                         primary={
                           <Box display="flex" justifyContent="space-between" alignItems="center">
                             <Typography variant="subtitle1" className={styles.commentTitle}>
@@ -350,10 +349,10 @@ const CommentSection = ({ auctionId, currentUser, authFetch, comments = [], isLo
                         }
                         secondary={
                           <>
-                            <Typography variant="body2" className={styles.commentText} gutterBottom>
+                            <Typography variant="body2" className={styles.commentText} gutterBottom component="span">
                               {comment.texto}
                             </Typography>
-                            <Typography variant="caption" className={styles.userName}>
+                            <Typography variant="caption" className={styles.userName} component="span" sx={{ display: 'block' }}>
                               Por: {comment.usuario_nombre || 'Usuario anónimo'}
                             </Typography>
                           </>
