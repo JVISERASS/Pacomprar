@@ -9,8 +9,6 @@ export default function UserProfileEditPage() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: '',
-    confirmPassword: '',
     first_name: '',
     last_name: '',
     birth_date: '',
@@ -50,8 +48,6 @@ export default function UserProfileEditPage() {
         setFormData({
           username: profile.username || '',
           email: profile.email || '',
-          password: '',
-          confirmPassword: '',
           first_name: profile.first_name || '',
           last_name: profile.last_name || '',
           birth_date: formattedDate,
@@ -82,37 +78,11 @@ export default function UserProfileEditPage() {
     }));
   };
 
-  const validatePassword = (password) => {
-    if (!password) return true; // If no password, do not validate (it will not be updated)
-    // At least 8 characters and contain letters and numbers
-    const regEx = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    return regEx.test(password);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Form validations
-    if (formData.password) {
-      if (formData.password !== formData.confirmPassword) {
-        setError('Las contraseñas no coinciden');
-        return;
-      }
-      
-      if (!validatePassword(formData.password)) {
-        setError('La contraseña debe tener al menos 8 caracteres y contener letras y números');
-        return;
-      }
-    }
-    
     // Prepare data for updating
     const updateData = {...formData};
-    delete updateData.confirmPassword;
-    
-    // If no new password, don't send it
-    if (!updateData.password) {
-      delete updateData.password;
-    }
     
     // Make sure birth_date has correct format
     if (updateData.birth_date) {
@@ -132,13 +102,6 @@ export default function UserProfileEditPage() {
       await updateUserProfile(updateData);
       
       setSuccess('Perfil actualizado correctamente');
-      
-      // Clear password fields
-      setFormData(prev => ({
-        ...prev,
-        password: '',
-        confirmPassword: ''
-      }));
     } catch (err) {
       console.error('Error al actualizar perfil:', err);
       
@@ -199,7 +162,6 @@ export default function UserProfileEditPage() {
     const fieldNames = {
       username: 'Nombre de usuario',
       email: 'Email',
-      password: 'Contraseña',
       first_name: 'Nombre',
       last_name: 'Apellidos',
       birth_date: 'Fecha de nacimiento',
@@ -272,34 +234,6 @@ export default function UserProfileEditPage() {
                 onChange={handleChange}
                 required
                 className={styles.input}
-              />
-            </div>
-          </div>
-          
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label htmlFor="password">Nueva contraseña</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={styles.input}
-                placeholder="Dejar en blanco para no cambiarla"
-              />
-            </div>
-            
-            <div className={styles.formGroup}>
-              <label htmlFor="confirmPassword">Confirmar contraseña</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={styles.input}
-                placeholder="Confirme la nueva contraseña"
               />
             </div>
           </div>
@@ -381,6 +315,14 @@ export default function UserProfileEditPage() {
               disabled={updating}
             >
               Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/usuario/cambiar-password')}
+              className={styles.passwordButton}
+              disabled={updating}
+            >
+              Cambiar contraseña
             </button>
             <button
               type="submit"

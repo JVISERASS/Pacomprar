@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAuthFetch } from '../../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../../config/apiConfig';
 import styles from './styles.module.css';
 
 export default function MyAuctionsPage() {
@@ -28,7 +29,7 @@ export default function MyAuctionsPage() {
             setLoading(true);
             setError('');
     
-            const response = await authFetch('https://pacomprarserver.onrender.com/api/misSubastas/');
+            const response = await authFetch(API_ROUTES.MY_AUCTIONS);
             
             // Comprueba el tipo de respuesta que tienes
             console.log("Tipo de respuesta:", typeof response);
@@ -69,17 +70,21 @@ export default function MyAuctionsPage() {
     const handleDeleteAuction = async (id) => {
         try {
             setLoading(true);
-            const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${id}/`, {
+            const response = await authFetch(API_ROUTES.AUCTION_BY_ID(id), {
                 method: 'DELETE'
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al eliminar la subasta');
+            // La respuesta ahora será un objeto con {success: true, status: 204} para respuestas 204 No Content
+            // o podría ser un objeto Response normal para otros casos
+            
+            if (response.success || (response.ok && response.status === 204)) {
+                // Refresh the auctions list after successful deletion
+                fetchAuctionsUser();
+                // Opcional: Mostrar mensaje de éxito
+                console.log('Subasta eliminada correctamente');
+            } else {
+                throw new Error('No se pudo eliminar la subasta');
             }
-
-            // Refresh the auctions list after deletion
-            fetchAuctionsUser();
         } catch (error) {
             console.error('Error deleting auction:', error);
             setError(error.message);

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
 import styles from '../../crear/styles.module.css'; // Reusing create styles
 import { useAuthFetch } from '../../../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../../../config/apiConfig';
 
 export default function EditAuctionPage() {
   const [formData, setFormData] = useState({
@@ -50,7 +51,7 @@ export default function EditAuctionPage() {
         setError('');
 
         // Load auction data
-        const auctionData = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`);
+        const auctionData = await authFetch(API_ROUTES.AUCTION_BY_ID(params.id));
         console.log('Datos de la subasta:', auctionData);
         setOriginalAuction(auctionData);
 
@@ -85,7 +86,7 @@ export default function EditAuctionPage() {
         }
 
         // Load categories
-        const categoriesResponse = await fetch('https://pacomprarserver.onrender.com/api/subastas/categorias/');
+        const categoriesResponse = await fetch(API_ROUTES.AUCTION_CATEGORIES);
         if (!categoriesResponse.ok) {
           throw new Error(`Error ${categoriesResponse.status}: ${categoriesResponse.statusText}`);
         }
@@ -93,18 +94,21 @@ export default function EditAuctionPage() {
         const categoriesData = await categoriesResponse.json();
         let processedCategories = [];
 
-        if (categoriesData && Array.isArray(categoriesData.results)) {
-          processedCategories = categoriesData.results.map(cat => ({
-            id: cat.id,
-            name: cat.nombre
-          }));
-        } else if (Array.isArray(categoriesData)) {
+        // Manejar diferentes formatos de respuesta
+        if (Array.isArray(categoriesData)) {
+          // Los datos son directamente un array
           processedCategories = categoriesData.map(cat => ({
             id: cat.id,
             name: cat.nombre
           }));
+        } else if (categoriesData && categoriesData.results && Array.isArray(categoriesData.results)) {
+          // Los datos son un objeto con propiedad results
+          processedCategories = categoriesData.results.map(cat => ({
+            id: cat.id,
+            name: cat.nombre
+          }));
         } else {
-          throw new Error('Unexpected response format for categories');
+          throw new Error('Formato de respuesta inesperado para categorías');
         }
 
         setCategories(processedCategories);
@@ -177,7 +181,7 @@ export default function EditAuctionPage() {
       setLoading(true);
       setError('');
       
-      const response = await authFetch(`https://pacomprarserver.onrender.com/api/subastas/${params.id}/`, {
+      const response = await authFetch(API_ROUTES.AUCTION_BY_ID(params.id), {
         method: 'PUT', // Usamos PUT para actualizar toda la subasta
         body: JSON.stringify(auctionData),
       });

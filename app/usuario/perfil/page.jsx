@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthFetch } from '../../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../../config/apiConfig';
 import styles from './styles.module.css';
 import PasswordChangeForm from '../../../components/PasswordChangeForm/PasswordChangeForm';
 
@@ -29,7 +30,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const data = await authFetch('https://pacomprarserver.onrender.com/api/usuarios/profile/');
+        const data = await authFetch(API_ROUTES.USER_PROFILE);
         setProfileData(data);
         setOriginalData(data);
         setLoading(false);
@@ -58,7 +59,7 @@ export default function UserProfilePage() {
     setSuccess(false);
     
     try {
-      const updatedProfile = await authFetch('https://pacomprarserver.onrender.com/api/usuarios/profile/', {
+      const updatedProfile = await authFetch(API_ROUTES.USER_PROFILE, {
         method: 'PATCH',
         body: JSON.stringify({
           username: profileData.username,

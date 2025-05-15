@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import styles from './PasswordChangeForm.module.css';
 import { useAuthFetch } from '../../hooks/useAuthFetch';
-import styles from './styles.module.css';
+import { API_ROUTES } from '../../config/apiConfig';
 
 export default function PasswordChangeForm() {
   const [formData, setFormData] = useState({
@@ -51,7 +52,7 @@ export default function PasswordChangeForm() {
     setSuccess(false);
     
     try {
-      await authFetch('https://pacomprarserver.onrender.com/api/usuarios/change-password/', {
+      await authFetch(API_ROUTES.CHANGE_PASSWORD, {
         method: 'POST',
         body: JSON.stringify({
           old_password: formData.old_password,
