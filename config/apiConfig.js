@@ -1,33 +1,29 @@
 /**
  * Configuración centralizada de la API
- * Este archivo permite cambiar fácilmente la URL base de la API
- * modificando solo este valor en un único lugar.
+ * Simplificada para hacer más comprensible el proyecto
  */
 
-// URL base para todas las llamadas a la API
+// URL base para todas las llamadas a la API - Cambiar esto para usar otro backend
 export const API_BASE_URL = 'https://pacomprarserver.onrender.com/api';
 
 /**
  * Construye una URL completa para la API
- * @param {string} path - Ruta relativa de la API (sin barra inicial)
- * @returns {string} URL completa
  */
 export const getApiUrl = (path) => {
-  // Asegurarse de que path no comienza con barra y la URL base no termina con barra
   const cleanPath = path.startsWith('/') ? path.substring(1) : path;
   return `${API_BASE_URL}/${cleanPath}`;
 };
 
 /**
- * Rutas específicas de la API
- * Centraliza los endpoints comunes para facilitar cambios
+ * Rutas de la API organizadas por categoría
+ * Añadir nuevas rutas aquí para mantener todo centralizado
  */
 export const API_ROUTES = {
   // Autenticación
   LOGIN: getApiUrl('token/'),
   LOGOUT: getApiUrl('usuarios/log-out/'),
   REFRESH_TOKEN: getApiUrl('token/refresh/'),
-  REGISTER: 'https://das-p2-backend.onrender.com/api/users/register/', // Nota: usa un dominio diferente
+  REGISTER: getApiUrl('usuarios/registro/'),
   USER_PROFILE: getApiUrl('usuarios/profile/'),
   CHANGE_PASSWORD: getApiUrl('usuarios/change-password/'),
   

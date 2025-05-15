@@ -1,0 +1,608 @@
+===== GUÍA BÁSICA DEL CÓDIGO DE PACOMPRAR =====
+
+=== 1. HACER LLAMADAS A LA API ===
+
+En este proyecto, hay tres formas principales de hacer llamadas a la API:
+
+## 1.1 Llamada simple con fetch (para peticiones sin autenticación)
+
+```javascript
+// Ejemplo: Obtener categorías de subastas
+const fetchCategories = async () => {
+  try {
+    // API_ROUTES.AUCTION_CATEGORIES = 'https://pacomprarserver.onrender.com/api/subastas/categorias/'
+    const response = await fetch(API_ROUTES.AUCTION_CATEGORIES);
+    
+    if (!response.ok) {
+      throw new Error('Error al cargar categorías');
+    }
+    
+    const data = await response.json();
+    setCategories(data);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
+
+## 1.2 Llamada autenticada con useAuthFetch (recomendada)
+
+```javascript
+// Importar el hook
+import { useAuthFetch } from '../../hooks/useAuthFetch';
+import { API_ROUTES } from '../../config/apiConfig';
+
+// Dentro del componente
+const { authFetch, loading, error } = useAuthFetch();
+
+// Ejemplo: Obtener subastas del usuario actual
+const fetchMyAuctions = async () => {
+  try {
+    // API_ROUTES.MY_AUCTIONS = 'https://pacomprarserver.onrender.com/api/misSubastas/'
+    const response = await authFetch(API_ROUTES.MY_AUCTIONS);
+    setAuctions(response);
+  } catch (err) {
+    console.error('Error:', err);
+  }
+};
+```
+
+## 1.3 Llamadas con parámetros
+
+```javascript
+// Obtener una subasta específica por ID
+const fetchAuctionDetails = async (id) => {
+  try {
+    // API_ROUTES.AUCTION_BY_ID(id) = 'https://pacomprarserver.onrender.com/api/subastas/123/'
+    const response = await authFetch(API_ROUTES.AUCTION_BY_ID(id));
+    setAuction(response);
+  } catch (err) {
+    console.error('Error:', err);
+  }
+};
+```
+
+=== 2. MÉTODOS HTTP COMUNES ===
+
+## 2.1 GET (obtener datos)
+
+```javascript
+// Ya visto en ejemplos anteriores, es el método por defecto
+const data = await authFetch(API_ROUTES.SOME_ENDPOINT);
+```
+
+## 2.2 POST (crear nuevo recurso)
+
+```javascript
+// Ejemplo: Crear una nueva subasta
+const createAuction = async (auctionData) => {
+  try {
+    const response = await authFetch(API_ROUTES.AUCTIONS, {
+      method: 'POST',
+      body: JSON.stringify(auctionData)
+    });
+    return response;
+  } catch (err) {
+    console.error('Error:', err);
+    throw err;
+  }
+};
+```
+
+## 2.3 PUT (actualizar recurso completo)
+
+```javascript
+// Ejemplo: Actualizar una subasta existente
+const updateAuction = async (id, auctionData) => {
+  try {
+    const response = await authFetch(API_ROUTES.AUCTION_BY_ID(id), {
+      method: 'PUT',
+      body: JSON.stringify(auctionData)
+    });
+    return response;
+  } catch (err) {
+    console.error('Error:', err);
+    throw err;
+  }
+};
+```
+
+## 2.4 DELETE (eliminar recurso)
+
+```javascript
+// Ejemplo: Eliminar una subasta
+const deleteAuction = async (id) => {
+  try {
+    const response = await authFetch(API_ROUTES.AUCTION_BY_ID(id), {
+      method: 'DELETE'
+    });
+    // Con respuesta 204 No Content, response será { success: true, status: 204 }
+    return response;
+  } catch (err) {
+    console.error('Error:', err);
+    throw err;
+  }
+};
+```
+
+=== 3. MANEJO DE FORMULARIOS ===
+
+## 3.1 Estado del formulario
+
+```javascript
+// Definir estado para los datos del formulario
+const [formData, setFormData] = useState({
+  title: '',
+  description: '',
+  price: '',
+  category: ''
+});
+
+// Función para actualizar el estado con los cambios
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
+```
+
+## 3.2 Envío del formulario
+
+```javascript
+// Función para enviar el formulario
+const handleSubmit = async (e) => {
+  e.preventDefault(); // Evitar comportamiento por defecto
+  
+  try {
+    const response = await authFetch(API_ROUTES.AUCTIONS, {
+      method: 'POST',
+      body: JSON.stringify(formData)
+    });
+    
+    console.log('Éxito:', response);
+    // Redirigir o mostrar mensaje de éxito
+  } catch (err) {
+    console.error('Error:', err);
+    // Mostrar error al usuario
+  }
+};
+
+// En el JSX
+<form onSubmit={handleSubmit}>
+  <input
+    type="text"
+    name="title"
+    value={formData.title}
+    onChange={handleChange}
+  />
+  {/* Más campos... */}
+  <button type="submit">Enviar</button>
+</form>
+```
+
+=== 4. AUTENTICACIÓN ===
+
+## 4.1 Iniciar sesión
+
+```javascript
+// Importar el contexto de autenticación
+import { useAuth } from '../contexts/AuthContext';
+
+// Dentro del componente
+const { login } = useAuth();
+
+// Función para manejar el inicio de sesión
+const handleLogin = async (e) => {
+  e.preventDefault();
+  
+  try {
+    await login(username, password);
+    // Redirigir tras el éxito
+    router.push('/');
+  } catch (err) {
+    console.error('Error de inicio de sesión:', err);
+    setError('Credenciales incorrectas');
+  }
+};
+```
+
+## 4.2 Cerrar sesión
+
+```javascript
+// Importar el contexto de autenticación
+import { useAuth } from '../contexts/AuthContext';
+
+// Dentro del componente
+const { logout } = useAuth();
+
+// Función para manejar el cierre de sesión
+const handleLogout = () => {
+  logout();
+  // Redirigir tras cerrar sesión
+  router.push('/login');
+};
+
+// En el JSX
+<button onClick={handleLogout}>Cerrar sesión</button>
+```
+
+## 4.3 Verificar si el usuario está autenticado
+
+```javascript
+// Importar el contexto de autenticación
+import { useAuth } from '../contexts/AuthContext';
+
+// Dentro del componente
+const { currentUser } = useAuth();
+
+// Verificar autenticación
+if (!currentUser) {
+  return <p>Por favor, inicia sesión para acceder</p>;
+}
+
+// Mostrar contenido solo para usuarios autenticados
+return <div>Contenido protegido</div>;
+```
+
+=== 5. NAVEGACIÓN ===
+
+## 5.1 Navegación con Next.js
+
+```javascript
+// Importar el hook de navegación
+import { useRouter } from 'next/navigation';
+
+// Dentro del componente
+const router = useRouter();
+
+// Navegar a una página
+const goToHomePage = () => {
+  router.push('/');
+};
+
+// Navegar a la página de detalle de subasta
+const goToAuctionDetail = (id) => {
+  router.push(`/subastas/${id}`);
+};
+
+// Volver a la página anterior
+const goBack = () => {
+  router.back();
+};
+
+// En el JSX
+<button onClick={goToHomePage}>Inicio</button>
+<button onClick={() => goToAuctionDetail(123)}>Ver subasta</button>
+<button onClick={goBack}>Volver</button>
+```
+
+=== 6. MANEJO DE ESTADOS ===
+
+## 6.1 Estado básico con useState
+
+```javascript
+// Importar useState
+import { useState } from 'react';
+
+// Estado simple
+const [count, setCount] = useState(0);
+
+// Estado de objeto
+const [user, setUser] = useState({ 
+  name: '', 
+  email: '' 
+});
+
+// Actualizar estado simple
+const increment = () => {
+  setCount(count + 1);
+};
+
+// Actualizar estado de objeto
+const updateName = (name) => {
+  setUser(prev => ({
+    ...prev,
+    name
+  }));
+};
+```
+
+## 6.2 Efectos secundarios con useEffect
+
+```javascript
+// Importar useEffect
+import { useEffect } from 'react';
+
+// Efecto que se ejecuta una sola vez al montar
+useEffect(() => {
+  fetchData();
+}, []); // Array de dependencias vacío
+
+// Efecto que se ejecuta cuando cambia una dependencia
+useEffect(() => {
+  fetchDataById(id);
+}, [id]); // Se ejecuta cuando cambia 'id'
+
+// Efecto con limpieza
+useEffect(() => {
+  const timer = setTimeout(() => {
+    console.log('Timeout ejecutado');
+  }, 1000);
+  
+  // Función de limpieza
+  return () => {
+    clearTimeout(timer);
+  };
+}, []);
+```
+
+=== 7. AÑADIR UN NUEVO FILTRO AL LISTADO DE SUBASTAS ===
+
+Si en el examen te piden añadir un nuevo filtro (por ejemplo, por estado: activo/finalizado), aquí tienes los pasos:
+
+## 7.1 Actualizar el estado de filtros en SubastasContent.jsx
+
+```javascript
+// Añadir al estado inicial de filtros
+const [filters, setFilters] = useState({
+  categoria: searchParams.get('categoria') || '',
+  precio_min: searchParams.get('precio_min') || '',
+  precio_max: searchParams.get('precio_max') || '',
+  search: searchParams.get('search') || '',
+  estado: searchParams.get('estado') || '' // Nuevo filtro
+});
+```
+
+## 7.2 Añadir el control de UI para el filtro
+
+```jsx
+{/* Añadir en el panel de filtros */}
+<select 
+  name="estado" 
+  value={filters.estado} 
+  onChange={handleFilterChange}
+  className={styles.filterSelect}
+>
+  <option value="">Todos los estados</option>
+  <option value="active">Subastas activas</option>
+  <option value="ended">Subastas finalizadas</option>
+</select>
+```
+
+## 7.3 Actualizar la creación de parámetros de consulta
+
+```javascript
+// En la función fetchAuctions
+if (filters.estado) queryParams.append('estado', filters.estado);
+```
+
+## 7.4 Actualizar la función para sincronizar URL
+
+```javascript
+// En updateUrlWithFilters
+if (currentFilters.estado) params.append('estado', currentFilters.estado);
+```
+
+=== 8. AÑADIR UNA NUEVA RUTA DE API ===
+
+Si necesitas añadir una nueva ruta a la API (por ejemplo, para un nuevo recurso o funcionalidad):
+
+## 8.1 Añadir la ruta en apiConfig.js
+
+```javascript
+export const API_ROUTES = {
+  // ...existing code...
+  
+  // Nueva funcionalidad: etiquetas para subastas
+  TAGS: getApiUrl('etiquetas/'),
+  AUCTION_TAGS: (auctionId) => getApiUrl(`subastas/${auctionId}/etiquetas/`),
+  TAG_BY_ID: (tagId) => getApiUrl(`etiquetas/${tagId}/`)
+};
+```
+
+## 8.2 Crear un componente para usar la nueva ruta
+
+```javascript
+// components/TagManager.jsx
+import { useState, useEffect } from 'react';
+import { useAuthFetch } from '../hooks/useAuthFetch';
+import { API_ROUTES } from '../config/apiConfig';
+
+export default function TagManager({ auctionId }) {
+  const [tags, setTags] = useState([]);
+  const { authFetch, loading, error } = useAuthFetch();
+  
+  // Cargar etiquetas
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await authFetch(API_ROUTES.AUCTION_TAGS(auctionId));
+        setTags(response);
+      } catch (err) {
+        console.error('Error al cargar etiquetas:', err);
+      }
+    };
+    
+    fetchTags();
+  }, [auctionId, authFetch]);
+  
+  // Añadir etiqueta
+  const addTag = async (tagName) => {
+    try {
+      const response = await authFetch(API_ROUTES.AUCTION_TAGS(auctionId), {
+        method: 'POST',
+        body: JSON.stringify({ name: tagName })
+      });
+      
+      setTags(prev => [...prev, response]);
+    } catch (err) {
+      console.error('Error al añadir etiqueta:', err);
+    }
+  };
+  
+  // Resto del componente...
+}
+```
+
+=== 9. DEPURACIÓN COMÚN ===
+
+## 9.1 Depurar respuestas de la API
+
+```javascript
+const fetchData = async () => {
+  try {
+    const response = await authFetch(API_ROUTES.SOME_ENDPOINT);
+    console.log('Respuesta completa:', response);
+    
+    // Inspeccionar propiedades específicas
+    console.log('IDs:', response.map(item => item.id));
+    console.log('Primera entrada:', response[0]);
+    
+    setData(response);
+  } catch (err) {
+    console.error('Error:', err);
+  }
+};
+```
+
+## 9.2 Depurar estados y props
+
+```jsx
+// Depurar con console.log
+console.log('Estado actual:', currentState);
+console.log('Props recibidas:', props);
+
+// Depurar con renderizado condicional
+{process.env.NODE_ENV !== 'production' && (
+  <div style={{ background: '#f0f0f0', padding: '10px', margin: '10px 0' }}>
+    <h4>Debug info:</h4>
+    <pre>{JSON.stringify(debugData, null, 2)}</pre>
+  </div>
+)}
+```
+
+=== 10. EJEMPLO COMPLETO: CREAR UN NUEVO COMPONENTE PARA FILTRAR ===
+
+```jsx
+// components/FilterBar.jsx
+import { useState } from 'react';
+import styles from './FilterBar.module.css';
+
+export default function FilterBar({ onFilterChange, initialFilters = {} }) {
+  const [filters, setFilters] = useState({
+    category: initialFilters.category || '',
+    priceMin: initialFilters.priceMin || '',
+    priceMax: initialFilters.priceMax || '',
+    search: initialFilters.search || '',
+    status: initialFilters.status || ''
+  });
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    const updatedFilters = {
+      ...filters,
+      [name]: value
+    };
+    
+    setFilters(updatedFilters);
+    
+    // Notificar al componente padre
+    if (onFilterChange) {
+      onFilterChange(updatedFilters);
+    }
+  };
+  
+  const handleReset = () => {
+    const emptyFilters = {
+      category: '',
+      priceMin: '',
+      priceMax: '',
+      search: '',
+      status: ''
+    };
+    
+    setFilters(emptyFilters);
+    
+    if (onFilterChange) {
+      onFilterChange(emptyFilters);
+    }
+  };
+  
+  return (
+    <div className={styles.filterBar}>
+      <input
+        type="text"
+        name="search"
+        value={filters.search}
+        onChange={handleChange}
+        placeholder="Buscar..."
+        className={styles.searchInput}
+      />
+      
+      <select
+        name="category"
+        value={filters.category}
+        onChange={handleChange}
+        className={styles.select}
+      >
+        <option value="">Todas las categorías</option>
+        <option value="1">Electrónica</option>
+        <option value="2">Hogar</option>
+        <option value="3">Moda</option>
+      </select>
+      
+      <div className={styles.priceInputs}>
+        <input
+          type="number"
+          name="priceMin"
+          value={filters.priceMin}
+          onChange={handleChange}
+          placeholder="Precio mín"
+          className={styles.numberInput}
+          min="0"
+        />
+        
+        <input
+          type="number"
+          name="priceMax"
+          value={filters.priceMax}
+          onChange={handleChange}
+          placeholder="Precio máx"
+          className={styles.numberInput}
+          min="0"
+        />
+      </div>
+      
+      <select
+        name="status"
+        value={filters.status}
+        onChange={handleChange}
+        className={styles.select}
+      >
+        <option value="">Todos los estados</option>
+        <option value="active">Activas</option>
+        <option value="ended">Finalizadas</option>
+      </select>
+      
+      <button
+        onClick={handleReset}
+        className={styles.resetButton}
+        type="button"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+  );
+}
+```
+
+=== RECUERDA ===
+
+1. Para cualquier llamada a la API autenticada, usa siempre `authFetch` del hook `useAuthFetch`.
+2. Define todas las rutas de API en `config/apiConfig.js`.
+3. Maneja siempre los errores con bloques try/catch.
+4. Para componentes que necesiten autenticación, usa `currentUser` del contexto `AuthContext`.
+5. Actualiza siempre el estado de manera inmutable (creando nuevos objetos/arrays).
