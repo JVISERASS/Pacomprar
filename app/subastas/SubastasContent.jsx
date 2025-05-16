@@ -202,7 +202,8 @@ export default function SubastasContent() {
             imageUrl: getSafeImageUrl(auction.imagen),
             seller: auction.usuario_nombre || `Usuario ${auction.usuario}`,
             category: auction.categoria.toString(),
-            endDate: auction.fecha_cierre
+            endDate: auction.fecha_cierre,
+            mean_val: auction.valoracion_media
           };
         });
         

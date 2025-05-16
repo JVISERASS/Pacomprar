@@ -38,7 +38,8 @@ export default function AuctionItem({ auction }) {
     buyNowPrice: auction.buyNowPrice,
     seller: auction.seller || 'Vendedor anónimo',
     category: auction.category || 'otros',
-    endDate: auction.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    endDate: auction.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    mean_val :auction.mean_val || "No hay datos"
   };
   
   // Determinar imagen a mostrar (usar la por defecto si hay error o no hay imagen)
@@ -138,6 +139,9 @@ export default function AuctionItem({ auction }) {
         <div className={styles.sellerInfo}>
           <FaUser className={styles.userIcon} />
           <span className={styles.sellerName}>{safeAuction.seller}</span>
+        </div>
+        <div className={styles.sellerInfo}>
+          <p>Valoracion Media: {safeAuction.mean_val}</p>
         </div>
       </div>
     </div>

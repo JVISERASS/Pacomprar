@@ -339,6 +339,7 @@ const AuctionDetailPage = () => {
   const isOwner = currentUser && auction?.usuario === currentUser.id;
   const title = auction?.titulo || 'Sin título';
   const description = auction?.descripcion || 'Sin descripción';
+  const mean_val = auction?.valoracion_media || 'Sin valoraciones';
   const category = auction?.categoria_nombre || 'Sin categoría';
   const endDate = auction?.fecha_cierre || new Date().toISOString();
   const isAuctionEnded = new Date(endDate) < new Date();
@@ -418,6 +419,12 @@ const AuctionDetailPage = () => {
           <div className={styles.descriptionBox}>
             <h3 className={styles.sectionTitle}>Descripción</h3>
             <p>{description}</p>
+          </div>
+
+          {/* Valoracion */}
+          <div className={styles.descriptionBox}>
+            <h3 className={styles.sectionTitle}>Valoración Media</h3>
+            <p>{mean_val}</p>
           </div>
 
           {/* Información del vendedor */}
